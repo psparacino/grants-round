@@ -1,6 +1,7 @@
 {
-  "network": "hardhat",
-  "startBlock": 1,
-  "programFactoryAddress": "0x79c2394B20A809EA693a7D64323A8846FF02029c",
-  "roundFactoryAddress": "0x89f01CD69087669f8e49F6FB8aD475F622Ac8791"
+    "network": "hardhat",
+    "startBlock": 1,
+    "programFactoryAddress": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    "roundFactoryAddress": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+    "QFVotingStrategyFactoryAddress": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
 }
