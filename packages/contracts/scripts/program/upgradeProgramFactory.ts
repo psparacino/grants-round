@@ -11,11 +11,10 @@ utils.assertEnvironment();
 // note: update anytime the program contract is to be upgraded
 const config = {
   currentProgramFactoryContract: "ProgramFactory",
-  newProgramFactoryContract: "DummyProgramFactory"
-}
+  newProgramFactoryContract: "DummyProgramFactory",
+};
 
 export async function main() {
-
   const network = hre.network;
 
   const networkParams = programParams[network.name];
@@ -25,27 +24,39 @@ export async function main() {
 
   const programFactoryContract = networkParams.programFactoryContract;
 
-  if (!config.newProgramFactoryContract || config.newProgramFactoryContract == '') {
-    console.log("error: set config.newProgramFactoryContract with the new contract to be deployed");
+  if (
+    !config.newProgramFactoryContract ||
+    config.newProgramFactoryContract == ""
+  ) {
+    console.log(
+      "error: set config.newProgramFactoryContract with the new contract to be deployed"
+    );
     return;
   }
-  
+
   await confirmContinue({
-    "contract"  : "Upgrading ProgramFactory to new version",
+    contract: "Upgrading ProgramFactory to new version",
     "factory contract": programFactoryContract,
-    "currentProgramFactoryContract": config.currentProgramFactoryContract,
-    "newProgramFactoryContract": config.newProgramFactoryContract,
-    "network"   : hre.network.name,
-    "chainId"   : hre.network.config.chainId
+    currentProgramFactoryContract: config.currentProgramFactoryContract,
+    newProgramFactoryContract: config.newProgramFactoryContract,
+    network: hre.network.name,
+    chainId: hre.network.config.chainId,
   });
 
   console.log("Upgrading ProgramFactory...");
 
-  const newContractFactory = await ethers.getContractFactory(config.newProgramFactoryContract);
+  const newContractFactory = await ethers.getContractFactory(
+    config.newProgramFactoryContract
+  );
 
-  const contract = await upgrades.upgradeProxy(programFactoryContract, newContractFactory);
+  const contract = await upgrades.upgradeProxy(
+    programFactoryContract,
+    newContractFactory
+  );
 
-  console.log(`ProgramFactory is now upgraded. Check ${programFactoryContract}`);
+  console.log(
+    `ProgramFactory is now upgraded. Check ${programFactoryContract}`
+  );
 
   return contract.address;
 }

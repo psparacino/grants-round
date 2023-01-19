@@ -3,39 +3,38 @@
 import { ethers } from "hardhat";
 import hre from "hardhat";
 import { confirmContinue } from "../../utils/script-utils";
-import { roundParams } from '../config/round.config';
+import { roundParams } from "../config/round.config";
 import * as utils from "../utils";
 
 utils.assertEnvironment();
 
-const projectApplications  = [
+const projectApplications = [
   {
     project: "0x5cdb35fADB8262A3f88863254c870c2e6A848CcA",
     metaPtr: {
       protocol: 1,
-      pointer: "bafybeiekytxwrrfzxvuq3ge5glfzlhkuxjgvx2qb4swodhqd3c3mtc5jay"
-    }
+      pointer: "bafybeiekytxwrrfzxvuq3ge5glfzlhkuxjgvx2qb4swodhqd3c3mtc5jay",
+    },
   },
 
   {
     project: "0x1bCD46B724fD4C08995CEC46ffd51bD45feDE200",
     metaPtr: {
       protocol: 1,
-      pointer: "bafybeih2pise44gkkzj7fdws3knwotppnh4x2gifnbxjtttuv7okw4mjzu"
-    }
+      pointer: "bafybeih2pise44gkkzj7fdws3knwotppnh4x2gifnbxjtttuv7okw4mjzu",
+    },
   },
 
   {
     project: "0x500Df079BEBE24A9f6FFa2c70fb58000A4722784",
     metaPtr: {
       protocol: 1,
-      pointer: "bafybeiceggy6uzfxsn3z6b2rraptp3g2kx2nrwailkjnx522yah43g5tyu"
-    }
-  }
+      pointer: "bafybeiceggy6uzfxsn3z6b2rraptp3g2kx2nrwailkjnx522yah43g5tyu",
+    },
+  },
 ];
 
 export async function main() {
-
   const network = hre.network;
 
   const networkParams = roundParams[network.name];
@@ -49,13 +48,13 @@ export async function main() {
     throw new Error(`Missing round contract for network ${network.name}`);
   }
 
-  const round = await ethers.getContractAt('RoundImplementation', contract);
-  
+  const round = await ethers.getContractAt("RoundImplementation", contract);
+
   await confirmContinue({
-    "contract"                     : "RoundImplementation -  Apply 3 projects",
-    "round"                        : contract,
-    "network"                      : network.name,
-    "chainId"                      : network.config.chainId
+    contract: "RoundImplementation -  Apply 3 projects",
+    round: contract,
+    network: network.name,
+    chainId: network.config.chainId,
   });
 
   for (let i = 0; i < projectApplications.length; i++) {

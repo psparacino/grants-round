@@ -11,11 +11,10 @@ utils.assertEnvironment();
 // note: update anytime the round contract is to be upgraded
 const config = {
   currentRoundFactoryContract: "RoundFactory",
-  newRoundFactoryContract: "DummyRoundFactory"
-}
+  newRoundFactoryContract: "DummyRoundFactory",
+};
 
 export async function main() {
-
   const network = hre.network;
 
   const networkParams = roundParams[network.name];
@@ -25,25 +24,32 @@ export async function main() {
 
   const roundFactoryContract = networkParams.roundFactoryContract;
 
-  if (!config.newRoundFactoryContract || config.newRoundFactoryContract == '') {
-    console.log("error: set config.newRoundFactoryContract with the new contract to be deployed");
+  if (!config.newRoundFactoryContract || config.newRoundFactoryContract == "") {
+    console.log(
+      "error: set config.newRoundFactoryContract with the new contract to be deployed"
+    );
     return;
   }
-  
+
   await confirmContinue({
-    "contract"  : "Upgrading RoundFactory to new version",
+    contract: "Upgrading RoundFactory to new version",
     "factory contract": roundFactoryContract,
-    "currentRoundFactoryContract": config.currentRoundFactoryContract,
-    "newRoundFactoryContract": config.newRoundFactoryContract,
-    "network"   : hre.network.name,
-    "chainId"   : hre.network.config.chainId
+    currentRoundFactoryContract: config.currentRoundFactoryContract,
+    newRoundFactoryContract: config.newRoundFactoryContract,
+    network: hre.network.name,
+    chainId: hre.network.config.chainId,
   });
 
   console.log("Upgrading RoundFactory...");
 
-  const newContractFactory = await ethers.getContractFactory(config.newRoundFactoryContract);
+  const newContractFactory = await ethers.getContractFactory(
+    config.newRoundFactoryContract
+  );
 
-  const contract = await upgrades.upgradeProxy(roundFactoryContract, newContractFactory);
+  const contract = await upgrades.upgradeProxy(
+    roundFactoryContract,
+    newContractFactory
+  );
 
   console.log(`RoundFactory is now upgraded. Check ${roundFactoryContract}`);
 

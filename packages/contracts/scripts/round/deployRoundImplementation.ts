@@ -4,6 +4,8 @@ import hre from "hardhat";
 import { confirmContinue } from "../../utils/script-utils";
 import * as utils from "../utils";
 
+import fs from "fs";
+
 utils.assertEnvironment();
 
 export async function main() {
@@ -25,6 +27,16 @@ export async function main() {
   console.log(`Deploying RoundImplementation to ${contract.address}`);
   await contract.deployTransaction.wait(blocksToWait);
   console.log("✅ Deployed");
+
+  const filePath = "./scripts/config/round.config.ts";
+  let fileContent = fs.readFileSync(filePath, "utf8");
+  const localhostRegex =
+    /(localhost\s*:\s*{[^}]*roundImplementationContract\s*:\s*['"])[^'"]*(['"])/gm;
+  fileContent = fileContent.replace(localhostRegex, `$1${contract.address}$2`);
+
+  console.log("✅ Updated round implementation address in round.config.ts");
+
+  fs.writeFileSync(filePath, fileContent);
 
   return contract.address;
 }

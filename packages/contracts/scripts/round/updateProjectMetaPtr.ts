@@ -3,19 +3,18 @@
 import { ethers } from "hardhat";
 import hre from "hardhat";
 import { confirmContinue } from "../../utils/script-utils";
-import { roundParams } from '../config/round.config';
+import { roundParams } from "../config/round.config";
 import * as utils from "../utils";
 
 utils.assertEnvironment();
 
-const roundConfig  = {
+const roundConfig = {
   metaPtr: {
     protocol: 1,
-    pointer: "bafybeigayocgcsj6efydq67ymitgx7nq4y754g6nohf3wgackd7ff7rx54"
-  }
-}
+    pointer: "bafybeigayocgcsj6efydq67ymitgx7nq4y754g6nohf3wgackd7ff7rx54",
+  },
+};
 export async function main() {
-
   const network = hre.network;
 
   const networkParams = roundParams[network.name];
@@ -28,13 +27,13 @@ export async function main() {
     throw new Error(`Missing contrat for network ${network.name}`);
   }
 
-  const round = await ethers.getContractAt('RoundImplementation', contract);
+  const round = await ethers.getContractAt("RoundImplementation", contract);
 
   await confirmContinue({
-    "contract"                     : "RoundImplementation",
-    "round"                        : contract,
-    "network"                      : network.name,
-    "chainId"                      : network.config.chainId
+    contract: "RoundImplementation",
+    round: contract,
+    network: network.name,
+    chainId: network.config.chainId,
   });
 
   // Update ProjectMetaPtr

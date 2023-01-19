@@ -3,14 +3,13 @@
 import { ethers } from "hardhat";
 import hre from "hardhat";
 import { confirmContinue } from "../../../utils/script-utils";
-import { roundParams } from '../../config/round.config';
+import { roundParams } from "../../config/round.config";
 import { QFVotingParams } from "../../config/votingStrategy.config";
 import * as utils from "../../utils";
 
 utils.assertEnvironment();
 
 export async function main() {
-
   const network = hre.network;
 
   const roundNetworkParams = roundParams[network.name];
@@ -31,15 +30,18 @@ export async function main() {
     throw new Error(`error: missing votingContract`);
   }
 
-  const grantRoundImplementation = await ethers.getContractAt('RoundImplementation', grantRoundContract);
+  const grantRoundImplementation = await ethers.getContractAt(
+    "RoundImplementation",
+    grantRoundContract
+  );
 
   await confirmContinue({
-    "contract"                : "GrantRoundImplementation Clone",
-    "grantRoundContract"      : grantRoundContract,
-    "votingStrategyContract"  : votingContract,
-    "function"                : "vote",
-    "network"                 : network.name,
-    "chainId"                 : network.config.chainId
+    contract: "GrantRoundImplementation Clone",
+    grantRoundContract: grantRoundContract,
+    votingStrategyContract: votingContract,
+    function: "vote",
+    network: network.name,
+    chainId: network.config.chainId,
   });
 
   const tokenAddress = "0x7f329D36FeA6b3AD10E6e36f2728e7e6788a938D";
@@ -58,7 +60,7 @@ export async function main() {
     "function symbol() view returns (string)",
     "function totalSupply() view returns (uint256)",
     "function transfer(address to, uint256 amount) returns (bool)",
-    "function transferFrom(address from, address to, uint256 amount) returns (bool)"
+    "function transferFrom(address from, address to, uint256 amount) returns (bool)",
   ];
 
   const signers = await ethers.getSigners();
@@ -74,13 +76,13 @@ export async function main() {
     [
       tokenAddress, // token
       1, // amount
-      "0x4873178BeA2DCd7022f0eF6c70048b0e05Bf9017" // grantAddress
+      "0x4873178BeA2DCd7022f0eF6c70048b0e05Bf9017", // grantAddress
     ],
     [
       tokenAddress, // token
-      2,  // amount
-      "0xB8cEF765721A6da910f14Be93e7684e9a3714123" // grantAddress
-    ]
+      2, // amount
+      "0xB8cEF765721A6da910f14Be93e7684e9a3714123", // grantAddress
+    ],
   ];
 
   const encodedVotes = [];
