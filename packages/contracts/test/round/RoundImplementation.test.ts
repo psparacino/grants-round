@@ -12,7 +12,9 @@ import {
 import {
   MockERC20,
   QuadraticFundingVotingStrategyImplementation,
+  QuadraticFundingRelayStrategyImplementation,
   RoundImplementation,
+  DummyRelay,
 } from "../../typechain";
 import { MerklePayoutStrategy } from "../../typechain/MerklePayoutStrategy";
 
@@ -21,7 +23,7 @@ type MetaPtr = {
   pointer: string;
 };
 
-describe("RoundImplementation", function () {
+describe.only("RoundImplementation", function () {
   let user: SignerWithAddress;
 
   // Round Implementation
@@ -29,8 +31,11 @@ describe("RoundImplementation", function () {
   let roundImplementationArtifact: Artifact;
 
   // Voting Strategy
-  let votingStrategy: QuadraticFundingVotingStrategyImplementation;
-  let votingStrategyArtifact: Artifact;
+  let quadraticFundingVotingStrategy: QuadraticFundingVotingStrategyImplementation;
+  let quadraticFundingVotingStrategyArtifact: Artifact;
+
+  let quadraticFundingRelayStrategy: QuadraticFundingRelayStrategyImplementation;
+  let quadraticFundingRelayStrategyArtifact: Artifact;
 
   // Payout Strategy
   let payoutStrategy: MerklePayoutStrategy;
@@ -42,7 +47,9 @@ describe("RoundImplementation", function () {
   let _applicationsEndTime: BigNumberish;
   let _roundEndTime: BigNumberish;
   let _token: string;
-  let _votingStrategy: string;
+  let _quadraticFundingVotingStrategy: string;
+  let _quadraticFundingRelayStrategy: string;
+
   let _payoutStrategy: string;
   let _roundMetaPtr: MetaPtr;
   let _applicationMetaPtr: MetaPtr;
@@ -59,13 +66,21 @@ describe("RoundImplementation", function () {
   before(async () => {
     [user] = await ethers.getSigners();
 
-    // Deploy VotingStrategy contract
-    votingStrategyArtifact = await artifacts.readArtifact(
+    // Deploy QuadraticFundingVotingStrategy contract
+    quadraticFundingVotingStrategyArtifact = await artifacts.readArtifact(
       "QuadraticFundingVotingStrategyImplementation"
     );
-    votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-      await deployContract(user, votingStrategyArtifact, [])
+    quadraticFundingVotingStrategy = <
+      QuadraticFundingVotingStrategyImplementation
+    >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
+
+    // Deploy QuadraticFundingRelayStrategy contract
+    quadraticFundingRelayStrategyArtifact = await artifacts.readArtifact(
+      "QuadraticFundingRelayStrategyImplementation"
     );
+    quadraticFundingRelayStrategy = <
+      QuadraticFundingRelayStrategyImplementation
+    >await deployContract(user, quadraticFundingRelayStrategyArtifact, []);
 
     // Deploy PayoutStrategy contract
     payoutStrategyArtifact = await artifacts.readArtifact(
@@ -89,7 +104,7 @@ describe("RoundImplementation", function () {
       expect(
         isAddress(roundImplementation.address),
         "Failed to deploy RoundImplementation"
-      ).to.be.true;
+      ).to.eq(true);
     });
   });
 
@@ -101,7 +116,7 @@ describe("RoundImplementation", function () {
       _roundEndTime = Math.round(new Date().getTime() / 1000 + 14400); // 4 hours later
 
       _token = Wallet.createRandom().address;
-      _votingStrategy = Wallet.createRandom().address;
+      _quadraticFundingVotingStrategy = Wallet.createRandom().address;
       _payoutStrategy = Wallet.createRandom().address;
       _roundMetaPtr = {
         protocol: 1,
@@ -139,16 +154,16 @@ describe("RoundImplementation", function () {
         ).timestamp;
 
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
           payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
@@ -176,7 +191,7 @@ describe("RoundImplementation", function () {
         );
 
         expect(await roundImplementation.votingStrategy()).equals(
-          votingStrategy.address
+          quadraticFundingVotingStrategy.address
         );
         expect(await roundImplementation.payoutStrategy()).equals(
           payoutStrategy.address
@@ -226,9 +241,9 @@ describe("RoundImplementation", function () {
 
       it("initialize SHOULD revert when applicationsStartTime is in the past", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -238,9 +253,9 @@ describe("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp - 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -261,9 +276,9 @@ describe("RoundImplementation", function () {
 
       it("initialize SHOULD revert when applicationsStartTime is after applicationsEndTime", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -274,9 +289,9 @@ describe("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _applicationsStartTime, // _applicationsStartTime
           _time, // _applicationsEndTime
           _roundStartTime, // _roundStartTime
@@ -297,9 +312,9 @@ describe("RoundImplementation", function () {
 
       it("initialize SHOULD revert if applicationsEndTime is after roundEndTime", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -310,9 +325,9 @@ describe("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _applicationsStartTime, // _applicationsStartTime
           _applicationsEndTime, // _applicationsEndTime
           _roundStartTime, // _roundStartTime
@@ -333,9 +348,9 @@ describe("RoundImplementation", function () {
 
       it("initialize SHOULD revert if roundEndTime is after roundStartTime", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -345,9 +360,9 @@ describe("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 1000, // _roundStartTime
@@ -366,9 +381,9 @@ describe("RoundImplementation", function () {
 
       it("initialize SHOULD revert when applicationsStartTime is after roundStartTime", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -378,9 +393,9 @@ describe("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 50, // _roundStartTime
@@ -400,9 +415,9 @@ describe("RoundImplementation", function () {
       });
 
       it("initialize CANNOT not be invoked on already initialized contract ", async () => {
-        const params = [
-          _votingStrategy, // _votingStrategyAddress
-          _payoutStrategy, // _payoutStrategyAddress
+        let params = [
+          _quadraticFundingVotingStrategy, // _quadraticFundingVotingStrategyAddress
+          _payoutStrategy, //_payoutStrategyAddress
           _applicationsStartTime, // _applicationsStartTime
           _applicationsEndTime, // _applicationsEndTime
           _roundStartTime, // _roundStartTime
@@ -452,17 +467,17 @@ describe("RoundImplementation", function () {
         ).timestamp;
 
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 600, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -479,9 +494,9 @@ describe("RoundImplementation", function () {
 
       it("updateRoundMetaPtr SHOULD revert if invoked by wallet who is not round operator", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -493,9 +508,9 @@ describe("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 600, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -562,17 +577,17 @@ describe("RoundImplementation", function () {
         ).timestamp;
 
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _applicationsStartTime, // _applicationsStartTime
           _applicationsEndTime, // _applicationsEndTime
           _roundStartTime, // _roundStartTime
@@ -589,9 +604,9 @@ describe("RoundImplementation", function () {
 
       it("updateApplicationMetaPtr SHOULD revert if invoked by wallet who is not round operator", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -602,9 +617,9 @@ describe("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _applicationsStartTime, // _applicationsStartTime
           _applicationsEndTime, // _applicationsEndTime
           _roundStartTime, // _roundStartTime
@@ -677,17 +692,17 @@ describe("RoundImplementation", function () {
         newTime = _currentBlockTimestamp + 110;
 
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
         const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -704,9 +719,9 @@ describe("RoundImplementation", function () {
 
       it("invoking updateRoundStartTime SHOULD revert if invoked by wallet who is not round operator", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -718,8 +733,8 @@ describe("RoundImplementation", function () {
         );
 
         const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -804,17 +819,17 @@ describe("RoundImplementation", function () {
         newTime = _currentBlockTimestamp + 1500;
 
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
         const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -831,9 +846,9 @@ describe("RoundImplementation", function () {
 
       it("invoking updateRoundEndTime SHOULD revert if invoked by wallet who is not round operator", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -845,8 +860,8 @@ describe("RoundImplementation", function () {
         );
 
         const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -887,17 +902,17 @@ describe("RoundImplementation", function () {
 
       it("invoking updateRoundEndTime SHOULD revert if roundEndTime is before applicationsEndTime", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 600, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -961,17 +976,17 @@ describe("RoundImplementation", function () {
         newTime = _currentBlockTimestamp + 200;
 
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
         const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -988,9 +1003,9 @@ describe("RoundImplementation", function () {
 
       it("updateApplicationsStartTime SHOULD revert if invoked by wallet who is not round operator", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -1002,8 +1017,8 @@ describe("RoundImplementation", function () {
         );
 
         const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1036,17 +1051,17 @@ describe("RoundImplementation", function () {
 
       it("invoking updateApplicationsStartTime SHOULD revert if applicationsStartTime is after roundStartTime", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
         const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 500, // _applicationsEndTime
           _currentBlockTimestamp + 250, // _roundStartTime
@@ -1127,17 +1142,17 @@ describe("RoundImplementation", function () {
         newTime = _currentBlockTimestamp + 300;
 
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1154,9 +1169,9 @@ describe("RoundImplementation", function () {
 
       it("invoking updateApplicationsEndTime SHOULD revert if invoked by wallet who is not round operator", async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -1167,9 +1182,9 @@ describe("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1268,9 +1283,9 @@ describe("RoundImplementation", function () {
         ).timestamp;
 
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -1281,8 +1296,8 @@ describe("RoundImplementation", function () {
         );
 
         params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1324,9 +1339,9 @@ describe("RoundImplementation", function () {
       });
 
       it("updateProjectsMetaPtr SHOULD revert if invoked by wallet who is not round operator", async () => {
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1375,9 +1390,9 @@ describe("RoundImplementation", function () {
 
       beforeEach(async () => {
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
@@ -1388,8 +1403,8 @@ describe("RoundImplementation", function () {
         ).timestamp;
 
         params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1442,98 +1457,305 @@ describe("RoundImplementation", function () {
       });
     });
 
-    describe("test: vote", () => {
-      const encodedVotes: BytesLike[] = [];
-      let mockERC20: MockERC20;
-      let _currentBlockTimestamp: number;
+    describe.only("test: vote", () => {
+      describe("QuadraticFundingVotingStrategy", () => {
+        let votes: [(string | number)[]];
+        let encodedVotes: BytesLike[] = [];
+        let mockERC20: MockERC20;
+        let _currentBlockTimestamp: number;
 
-      before(async () => {
-        const mockERC20Artifact = await artifacts.readArtifact("MockERC20");
-        mockERC20 = <MockERC20>(
-          await deployContract(user, mockERC20Artifact, [10000])
-        );
-
-        await mockERC20.approve(votingStrategy.address, 100);
-
-        // Prepare Votes
-        const votes = [
-          [
-            mockERC20.address,
-            5,
-            Wallet.createRandom().address,
-            formatBytes32String("grant2"),
-          ],
-        ];
-
-        for (let i = 0; i < votes.length; i++) {
-          encodedVotes.push(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "address", "bytes32"],
-              votes[i]
-            )
+        before(async () => {
+          let mockERC20Artifact = await artifacts.readArtifact("MockERC20");
+          mockERC20 = <MockERC20>(
+            await deployContract(user, mockERC20Artifact, [10000])
           );
-        }
+
+          await mockERC20.approve(quadraticFundingVotingStrategy.address, 100);
+
+          // Prepare Votes
+          votes = [
+            [
+              mockERC20.address,
+              5,
+              Wallet.createRandom().address,
+              formatBytes32String("grant2"),
+            ],
+          ];
+
+          for (let i = 0; i < votes.length; i++) {
+            encodedVotes.push(
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "uint256", "address", "bytes32"],
+                votes[i]
+              )
+            );
+          }
+        });
+
+        this.beforeEach(async () => {
+          _currentBlockTimestamp = (
+            await ethers.provider.getBlock(
+              await ethers.provider.getBlockNumber()
+            )
+          ).timestamp;
+        });
+
+        it("invoking vote SHOULD revert WHEN invoked before roundStartTime", async () => {
+          await expect(
+            roundImplementation.vote(encodedVotes)
+          ).to.be.revertedWith("vote: round is not active");
+        });
+
+        it("invoking vote SHOULD revert WHEN invoked after roundEndTime", async () => {
+          await ethers.provider.send("evm_mine", [
+            _currentBlockTimestamp + 18000,
+          ]);
+
+          await expect(
+            roundImplementation.vote(encodedVotes)
+          ).to.be.revertedWith("vote: round is not active");
+        });
+
+        it("invoking vote with encoded votes SHOULD NOT revert when round is active", async () => {
+          // Deploy voting strategy
+          quadraticFundingVotingStrategy = <
+            QuadraticFundingVotingStrategyImplementation
+          >await deployContract(
+            user,
+            quadraticFundingVotingStrategyArtifact,
+            []
+          );
+          // Deploy PayoutStrategy contract
+          payoutStrategy = <MerklePayoutStrategy>(
+            await deployContract(user, payoutStrategyArtifact, [])
+          );
+
+          await mockERC20.approve(quadraticFundingVotingStrategy.address, 100);
+
+          const params = [
+            quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+            payoutStrategy.address, //_payoutStrategyAddress
+            _currentBlockTimestamp + 100, // _applicationsStartTime
+            _currentBlockTimestamp + 250, // _applicationsEndTime
+            _currentBlockTimestamp + 500, // _roundStartTime
+            _currentBlockTimestamp + 1000, // _roundEndTime
+            mockERC20.address, // _token
+            _roundMetaPtr, // _roundMetaPtr
+            _applicationMetaPtr, // _applicationMetaPtr
+            _adminRoles, // _adminRoles
+            _roundOperators, // _roundOperators
+          ];
+
+          // Deploy Round contract
+          const newRoundImplementation = <RoundImplementation>(
+            await deployContract(user, roundImplementationArtifact, [])
+          );
+          await newRoundImplementation.initialize(
+            encodeRoundParameters(params)
+          );
+
+          // Mine Blocks
+          await ethers.provider.send("evm_mine", [
+            _currentBlockTimestamp + 900,
+          ]);
+
+          await expect(newRoundImplementation.vote(encodedVotes))
+            .to.emit(quadraticFundingVotingStrategy, "Voted")
+            .withArgs(
+              votes[0][0], // token address
+              votes[0][1], // amount
+              user.address, // voter address
+              votes[0][2], // grants address
+              votes[0][3], // project ID
+              newRoundImplementation.address //round address
+            );
+        });
       });
+      describe("QuadraticFundingRelayStrategy", async () => {
+        let votes: [(string | number)[]];
 
-      this.beforeEach(async () => {
-        _currentBlockTimestamp = (
-          await ethers.provider.getBlock(await ethers.provider.getBlockNumber())
-        ).timestamp;
-      });
+        let encodedVotes: BytesLike[] = [];
+        let mockERC20: MockERC20;
+        let dummyRelayArtifact: Artifact;
+        let dummyRelay: DummyRelay;
 
-      it("invoking vote SHOULD revert WHEN invoked before roundStartTime", async () => {
-        await expect(roundImplementation.vote(encodedVotes)).to.be.revertedWith(
-          "vote: round is not active"
-        );
-      });
+        let _currentBlockTimestamp: number;
 
-      it("invoking vote SHOULD revert WHEN invoked after roundEndTime", async () => {
-        await ethers.provider.send("evm_mine", [
-          _currentBlockTimestamp + 18000,
-        ]);
+        before(async () => {
+          let mockERC20Artifact = await artifacts.readArtifact("MockERC20");
+          mockERC20 = <MockERC20>(
+            await deployContract(user, mockERC20Artifact, [10000])
+          );
 
-        await expect(roundImplementation.vote(encodedVotes)).to.be.revertedWith(
-          "vote: round is not active"
-        );
-      });
+          dummyRelayArtifact = await artifacts.readArtifact("DummyRelay");
 
-      it("invoking vote with encoded votes SHOULD NOT revert when round is active", async () => {
-        // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
-        // Deploy PayoutStrategy contract
-        payoutStrategy = <MerklePayoutStrategy>(
-          await deployContract(user, payoutStrategyArtifact, [])
-        );
+          await mockERC20.approve(quadraticFundingRelayStrategy.address, 100);
 
-        await mockERC20.approve(votingStrategy.address, 100);
+          // Prepare Votes
+          votes = [
+            [
+              user.address,
+              mockERC20.address,
+              5,
+              Wallet.createRandom().address,
+              formatBytes32String("grant2"),
+            ],
+          ];
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
-          _currentBlockTimestamp + 100, // _applicationsStartTime
-          _currentBlockTimestamp + 250, // _applicationsEndTime
-          _currentBlockTimestamp + 500, // _roundStartTime
-          _currentBlockTimestamp + 1000, // _roundEndTime
-          mockERC20.address, // _token
-          _roundMetaPtr, // _roundMetaPtr
-          _applicationMetaPtr, // _applicationMetaPtr
-          _adminRoles, // _adminRoles
-          _roundOperators, // _roundOperators
-        ];
+          for (let i = 0; i < votes.length; i++) {
+            encodedVotes.push(
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "address", "uint256", "address", "bytes32"],
+                votes[i]
+              )
+            );
+          }
+        });
 
-        // Deploy Round contract
-        const newRoundImplementation = <RoundImplementation>(
-          await deployContract(user, roundImplementationArtifact, [])
-        );
-        await newRoundImplementation.initialize(encodeRoundParameters(params));
+        this.beforeEach(async () => {
+          _currentBlockTimestamp = (
+            await ethers.provider.getBlock(
+              await ethers.provider.getBlockNumber()
+            )
+          ).timestamp;
+        });
 
-        // Mine Blocks
-        await ethers.provider.send("evm_mine", [_currentBlockTimestamp + 900]);
+        it("invoking vote SHOULD revert WHEN invoked before roundStartTime", async () => {
+          await expect(
+            roundImplementation.vote(encodedVotes)
+          ).to.be.revertedWith("vote: round is not active");
+        });
 
-        await expect(newRoundImplementation.vote(encodedVotes)).to.not.be
-          .reverted;
+        it("invoking vote SHOULD revert WHEN invoked after roundEndTime", async () => {
+          await ethers.provider.send("evm_mine", [
+            _currentBlockTimestamp + 18000,
+          ]);
+
+          await expect(
+            roundImplementation.vote(encodedVotes)
+          ).to.be.revertedWith("vote: round is not active");
+        });
+
+        it("invoking vote with encoded votes SHOULD NOT revert when round is active", async () => {
+          // Deploy voting strategy
+          quadraticFundingRelayStrategy = <
+            QuadraticFundingRelayStrategyImplementation
+          >await deployContract(
+            user,
+            quadraticFundingRelayStrategyArtifact,
+            []
+          );
+          // Deploy PayoutStrategy contract
+          payoutStrategy = <MerklePayoutStrategy>(
+            await deployContract(user, payoutStrategyArtifact, [])
+          );
+
+          await mockERC20.approve(quadraticFundingRelayStrategy.address, 100);
+
+          const params = [
+            quadraticFundingRelayStrategy.address, // _quadraticFundingRelayStrategyAddress
+            payoutStrategy.address, //_payoutStrategyAddress
+            _currentBlockTimestamp + 100, // _applicationsStartTime
+            _currentBlockTimestamp + 250, // _applicationsEndTime
+            _currentBlockTimestamp + 500, // _roundStartTime
+            _currentBlockTimestamp + 1000, // _roundEndTime
+            mockERC20.address, // _token
+            _roundMetaPtr, // _roundMetaPtr
+            _applicationMetaPtr, // _applicationMetaPtr
+            _adminRoles, // _adminRoles
+            _roundOperators, // _roundOperators
+          ];
+
+          // Deploy Round contract
+          const newRoundImplementation = <RoundImplementation>(
+            await deployContract(user, roundImplementationArtifact, [])
+          );
+          await newRoundImplementation.initialize(
+            encodeRoundParameters(params)
+          );
+
+          // Mine Blocks
+          await ethers.provider.send("evm_mine", [
+            _currentBlockTimestamp + 900,
+          ]);
+
+          await expect(newRoundImplementation.vote(encodedVotes))
+            .to.emit(quadraticFundingRelayStrategy, "Voted")
+            .withArgs(
+              votes[0][1], // token address
+              votes[0][2], // amount
+              votes[0][0], // voter address
+              votes[0][3], // grants address
+              votes[0][4], // project ID
+              newRoundImplementation.address //round address
+            );
+        });
+
+        it("invoking vote with via relay SHOULD emit expected vote", async () => {
+          // Deploy voting strategy
+          quadraticFundingRelayStrategy = <
+            QuadraticFundingRelayStrategyImplementation
+          >await deployContract(
+            user,
+            quadraticFundingRelayStrategyArtifact,
+            []
+          );
+          // Deploy PayoutStrategy contract
+          payoutStrategy = <MerklePayoutStrategy>(
+            await deployContract(user, payoutStrategyArtifact, [])
+          );
+
+          await mockERC20.approve(quadraticFundingRelayStrategy.address, 100);
+
+          const params = [
+            quadraticFundingRelayStrategy.address, // _quadraticFundingRelayStrategyAddress
+            payoutStrategy.address, //_payoutStrategyAddress
+            _currentBlockTimestamp + 100, // _applicationsStartTime
+            _currentBlockTimestamp + 250, // _applicationsEndTime
+            _currentBlockTimestamp + 500, // _roundStartTime
+            _currentBlockTimestamp + 1000, // _roundEndTime
+            mockERC20.address, // _token
+            _roundMetaPtr, // _roundMetaPtr
+            _applicationMetaPtr, // _applicationMetaPtr
+            _adminRoles, // _adminRoles
+            _roundOperators, // _roundOperators
+          ];
+
+          // Deploy Round contract
+          const newRoundImplementation = <RoundImplementation>(
+            await deployContract(user, roundImplementationArtifact, [])
+          );
+          await newRoundImplementation.initialize(
+            encodeRoundParameters(params)
+          );
+
+          // Set up relayer
+          dummyRelay = <DummyRelay>(
+            await deployContract(user, dummyRelayArtifact, [
+              newRoundImplementation.address,
+            ])
+          );
+          // Mine Blocks
+          await ethers.provider.send("evm_mine", [
+            _currentBlockTimestamp + 900,
+          ]);
+
+          const tokens = [mockERC20.address];
+          const amounts = [5];
+          const grants = [Wallet.createRandom().address];
+          const projectIds = [formatBytes32String("grant2")];
+
+          await expect(dummyRelay.vote(tokens, amounts, grants, projectIds))
+            .to.emit(quadraticFundingRelayStrategy, "Voted")
+            .withArgs(
+              tokens[0], // token address
+              amounts[0], // amount
+              user.address, // voter address
+              grants[0], // grants address
+              projectIds[0], // project ID
+              newRoundImplementation.address //round address
+            );
+        });
       });
     });
 
@@ -1550,22 +1772,22 @@ describe("RoundImplementation", function () {
       ]);
 
       beforeEach(async () => {
-        const _currentBlockTimestamp = (
+        let _currentBlockTimestamp = (
           await ethers.provider.getBlock(await ethers.provider.getBlockNumber())
         ).timestamp;
 
         // Deploy voting strategy
-        votingStrategy = <QuadraticFundingVotingStrategyImplementation>(
-          await deployContract(user, votingStrategyArtifact, [])
-        );
+        quadraticFundingVotingStrategy = <
+          QuadraticFundingVotingStrategyImplementation
+        >await deployContract(user, quadraticFundingVotingStrategyArtifact, []);
         // Deploy PayoutStrategy contract
         payoutStrategy = <MerklePayoutStrategy>(
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        const params = [
-          votingStrategy.address, // _votingStrategyAddress
-          payoutStrategy.address, // _payoutStrategyAddress
+        let params = [
+          quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
+          payoutStrategy.address, //_payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
