@@ -44,7 +44,7 @@
     "// summon-script": "echo '//-- Summon everything --//'",
     "start-graph-node": "cd ../graph/ && docker-compose up",
     "stop-graph-node": "cd ../graph/ && docker-compose down -v",
-    "summon": "yarn deploy-program-factory localhost && yarn deploy-program-implementation localhost && yarn link-program-implementation localhost && yarn deploy-round-implementation localhost && yarn deploy-round-factory localhost && yarn link-round-implementation localhost && yarn deploy-qf-factory localhost && yarn deploy-qf-implementation localhost && yarn link-qf-implementation localhost && yarn deploy-merkle-contract localhost",
+    "summon": "yarn deploy-program-factory localhost && yarn deploy-program-implementation localhost && yarn link-program-implementation localhost && yarn deploy-round-implementation localhost && yarn deploy-round-factory localhost && yarn link-round-implementation localhost && yarn deploy-qf-relay-factory localhost && yarn deploy-qf-relay-implementation localhost && yarn link-qf-relay-implementation localhost && yarn deploy-merkle-contract localhost",
     "deploy-subgraph": "cd ../graph/ && yarn prepare:local && yarn codegen && yarn build && yarn create-local && yarn deploy-local"
     
   },

@@ -3,6 +3,7 @@ import { ethers, upgrades } from "hardhat";
 import hre from "hardhat";
 import { confirmContinue } from "../../../utils/script-utils";
 import * as utils from "../../utils";
+import fs from "fs";
 
 utils.assertEnvironment();
 
@@ -28,6 +29,24 @@ export async function main() {
 
   await contract.deployTransaction.wait(blocksToWait);
   console.log("✅ Deployed.");
+
+  const filePath = "./scripts/config/votingStrategy.config.ts";
+  let fileContent = fs.readFileSync(filePath, "utf8");
+  const localhostRegex =
+    /(localhost\s*:\s*{[^}]*factory\s*:\s*['"])[^'"]*(['"])/gm;
+  fileContent = fileContent.replace(localhostRegex, `$1${contract.address}$2`);
+
+  console.log(
+    "✅ Updated **relay** voting strategy factory address in round.config.ts"
+  );
+
+  fs.writeFileSync(filePath, fileContent);
+
+  const configFilePath = "../graph/config/localhost.json";
+  const config = JSON.parse(fs.readFileSync(configFilePath, "utf8"));
+  config.QFVotingStrategyFactoryAddress = contract.address;
+  fs.writeFileSync(configFilePath, JSON.stringify(config, null, 4));
+  console.log("✅ Updated QF Voting Relay Strategy factory address in config.json");
 
   return contract.address;
 }

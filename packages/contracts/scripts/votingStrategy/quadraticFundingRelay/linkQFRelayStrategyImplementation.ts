@@ -2,7 +2,7 @@
 import { ethers } from "hardhat";
 import hre from "hardhat";
 import { confirmContinue } from "../../../utils/script-utils";
-import { QFRelayParams } from "../../config/votingStrategy.config";
+import { QFVotingParams } from "../../config/votingStrategy.config";
 import * as utils from "../../utils";
 
 utils.assertEnvironment();
@@ -13,7 +13,7 @@ export async function main(
 ) {
   const network = hre.network;
 
-  const networkParams = QFRelayParams[network.name];
+  const networkParams = QFVotingParams[network.name];
   if (!networkParams) {
     throw new Error(`Invalid network ${network.name}`);
   }

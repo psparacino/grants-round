@@ -33,6 +33,11 @@ export const QFVotingParams: DeployParams = {
     implementation: "0x1eBBf0FC753e03f13Db456A3686523Fc589E4f67",
     contract: "0x02B52C3a398567AdFffb3396d6eE3d3c2bff37fE",
   },
+  localhost: {
+    factory: "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+    implementation: "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+    contract: "0xd3E45c78050a6472e28b9E02AA8596F7868e63d6",
+  },
 };
 
 export const QFRelayParams: DeployParams = {

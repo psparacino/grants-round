@@ -8,6 +8,7 @@ utils.assertEnvironment();
 
 export async function main() {
   // Wait 10 blocks for re-org protection
+  console.log(hre.network)
   const blocksToWait = hre.network.name === "localhost" ? 0 : 10;
 
   await confirmContinue({

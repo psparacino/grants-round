@@ -162,7 +162,7 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
           payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
@@ -253,9 +253,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp - 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -289,9 +289,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _applicationsStartTime, // _applicationsStartTime
           _time, // _applicationsEndTime
           _roundStartTime, // _roundStartTime
@@ -325,9 +325,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _applicationsStartTime, // _applicationsStartTime
           _applicationsEndTime, // _applicationsEndTime
           _roundStartTime, // _roundStartTime
@@ -360,9 +360,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 1000, // _roundStartTime
@@ -393,9 +393,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 50, // _roundStartTime
@@ -415,9 +415,9 @@ describe.only("RoundImplementation", function () {
       });
 
       it("initialize CANNOT not be invoked on already initialized contract ", async () => {
-        let params = [
+        const params = [
           _quadraticFundingVotingStrategy, // _quadraticFundingVotingStrategyAddress
-          _payoutStrategy, //_payoutStrategyAddress
+          _payoutStrategy, // _payoutStrategyAddress
           _applicationsStartTime, // _applicationsStartTime
           _applicationsEndTime, // _applicationsEndTime
           _roundStartTime, // _roundStartTime
@@ -475,9 +475,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 600, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -508,9 +508,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 600, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -585,9 +585,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _applicationsStartTime, // _applicationsStartTime
           _applicationsEndTime, // _applicationsEndTime
           _roundStartTime, // _roundStartTime
@@ -617,9 +617,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _applicationsStartTime, // _applicationsStartTime
           _applicationsEndTime, // _applicationsEndTime
           _roundStartTime, // _roundStartTime
@@ -702,7 +702,7 @@ describe.only("RoundImplementation", function () {
 
         const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -734,7 +734,7 @@ describe.only("RoundImplementation", function () {
 
         const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -829,7 +829,7 @@ describe.only("RoundImplementation", function () {
 
         const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -861,7 +861,7 @@ describe.only("RoundImplementation", function () {
 
         const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -910,9 +910,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 600, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -986,7 +986,7 @@ describe.only("RoundImplementation", function () {
 
         const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1018,7 +1018,7 @@ describe.only("RoundImplementation", function () {
 
         const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1061,7 +1061,7 @@ describe.only("RoundImplementation", function () {
 
         const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 500, // _applicationsEndTime
           _currentBlockTimestamp + 250, // _roundStartTime
@@ -1150,9 +1150,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1182,9 +1182,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, roundImplementationArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1297,7 +1297,7 @@ describe.only("RoundImplementation", function () {
 
         params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1339,9 +1339,9 @@ describe.only("RoundImplementation", function () {
       });
 
       it("updateProjectsMetaPtr SHOULD revert if invoked by wallet who is not round operator", async () => {
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1404,7 +1404,7 @@ describe.only("RoundImplementation", function () {
 
         params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
@@ -1460,12 +1460,12 @@ describe.only("RoundImplementation", function () {
     describe("test: vote", () => {
       describe("QuadraticFundingVotingStrategy", () => {
         let votes: [(string | number)[]];
-        let encodedVotes: BytesLike[] = [];
+        const encodedVotes: BytesLike[] = [];
         let mockERC20: MockERC20;
         let _currentBlockTimestamp: number;
 
         before(async () => {
-          let mockERC20Artifact = await artifacts.readArtifact("MockERC20");
+          const mockERC20Artifact = await artifacts.readArtifact("MockERC20");
           mockERC20 = <MockERC20>(
             await deployContract(user, mockERC20Artifact, [10000])
           );
@@ -1534,7 +1534,7 @@ describe.only("RoundImplementation", function () {
 
           const params = [
             quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-            payoutStrategy.address, //_payoutStrategyAddress
+            payoutStrategy.address, // _payoutStrategyAddress
             _currentBlockTimestamp + 100, // _applicationsStartTime
             _currentBlockTimestamp + 250, // _applicationsEndTime
             _currentBlockTimestamp + 500, // _roundStartTime
@@ -1567,14 +1567,14 @@ describe.only("RoundImplementation", function () {
               user.address, // voter address
               votes[0][2], // grants address
               votes[0][3], // project ID
-              newRoundImplementation.address //round address
+              newRoundImplementation.address // round address
             );
         });
       });
       describe("QuadraticFundingRelayStrategy", async () => {
         let votes: [(string | number)[]];
 
-        let encodedVotes: BytesLike[] = [];
+        const encodedVotes: BytesLike[] = [];
         let mockERC20: MockERC20;
         let dummyRelayArtifact: Artifact;
         let dummyRelay: DummyRelay;
@@ -1582,7 +1582,7 @@ describe.only("RoundImplementation", function () {
         let _currentBlockTimestamp: number;
 
         before(async () => {
-          let mockERC20Artifact = await artifacts.readArtifact("MockERC20");
+          const mockERC20Artifact = await artifacts.readArtifact("MockERC20");
           mockERC20 = <MockERC20>(
             await deployContract(user, mockERC20Artifact, [10000])
           );
@@ -1654,7 +1654,7 @@ describe.only("RoundImplementation", function () {
 
           const params = [
             quadraticFundingRelayStrategy.address, // _quadraticFundingRelayStrategyAddress
-            payoutStrategy.address, //_payoutStrategyAddress
+            payoutStrategy.address, // _payoutStrategyAddress
             _currentBlockTimestamp + 100, // _applicationsStartTime
             _currentBlockTimestamp + 250, // _applicationsEndTime
             _currentBlockTimestamp + 500, // _roundStartTime
@@ -1687,7 +1687,7 @@ describe.only("RoundImplementation", function () {
               votes[0][0], // voter address
               votes[0][3], // grants address
               votes[0][4], // project ID
-              newRoundImplementation.address //round address
+              newRoundImplementation.address // round address
             );
         });
 
@@ -1709,7 +1709,7 @@ describe.only("RoundImplementation", function () {
 
           const params = [
             quadraticFundingRelayStrategy.address, // _quadraticFundingRelayStrategyAddress
-            payoutStrategy.address, //_payoutStrategyAddress
+            payoutStrategy.address, // _payoutStrategyAddress
             _currentBlockTimestamp + 100, // _applicationsStartTime
             _currentBlockTimestamp + 250, // _applicationsEndTime
             _currentBlockTimestamp + 500, // _roundStartTime
@@ -1753,7 +1753,7 @@ describe.only("RoundImplementation", function () {
               user.address, // voter address
               grants[0], // grants address
               projectIds[0], // project ID
-              newRoundImplementation.address //round address
+              newRoundImplementation.address // round address
             );
         });
       });
@@ -1772,7 +1772,7 @@ describe.only("RoundImplementation", function () {
       ]);
 
       beforeEach(async () => {
-        let _currentBlockTimestamp = (
+        const _currentBlockTimestamp = (
           await ethers.provider.getBlock(await ethers.provider.getBlockNumber())
         ).timestamp;
 
@@ -1785,9 +1785,9 @@ describe.only("RoundImplementation", function () {
           await deployContract(user, payoutStrategyArtifact, [])
         );
 
-        let params = [
+        const params = [
           quadraticFundingVotingStrategy.address, // _quadraticFundingVotingStrategyAddress
-          payoutStrategy.address, //_payoutStrategyAddress
+          payoutStrategy.address, // _payoutStrategyAddress
           _currentBlockTimestamp + 100, // _applicationsStartTime
           _currentBlockTimestamp + 250, // _applicationsEndTime
           _currentBlockTimestamp + 500, // _roundStartTime
