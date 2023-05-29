@@ -6,7 +6,6 @@ import {
   fetchQFContributionsForRound,
   summarizeQFContributions,
 } from "../votingStrategies/linearQuadraticFunding";
-import { hotfixForRounds } from "../hotfixes";
 import { cache } from "../cacheConfig";
 import { db } from "../database";
 
@@ -114,7 +113,6 @@ export const getRoundSummary = async (
         votingStrategyId,
       );
 
-      contributions = await hotfixForRounds(roundId, contributions);
 
       // fetch round stats
       results = await summarizeQFContributions(chainId, contributions);

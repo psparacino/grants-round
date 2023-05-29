@@ -277,6 +277,8 @@ export const getChainName = (chainId: ChainId) => {
     [ChainId.MAINNET]: "ethereum",
     [ChainId.OPTIMISM_MAINNET]: "optimistic-ethereum",
     [ChainId.FANTOM_MAINNET]: "fantom",
+    [ChainId.POLYGON_MAINNET]: 'polygon-pos',
+    [ChainId.MUMBAI]: 'polygon-pos'
   };
 
   if (coingeckoSupportedChainNames[chainId]) {
@@ -668,6 +670,12 @@ export const getValidCoinGeckoTokenAddress = (chainId: ChainId, address: string)
   if (chainId == ChainId.FANTOM_MAINNET) {
     if (address == "0xc931f61b1534eb21d8c11b24f3f5ab2471d4ab50") { // BUSD
       validAddress = "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e" // DAI
+    }
+  }
+
+  if (chainId == ChainId.MUMBAI) {
+    if (address == "0x9c3c9283d3e44854697cd22d3faa240cfb032889") { // POLYGON WMATIC
+      validAddress = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270" // MATIC
     }
   }
   return validAddress;

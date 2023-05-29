@@ -11,6 +11,8 @@ export enum ChainId {
   FANTOM_MAINNET = "250",
   FANTOM_TESTNET = "4002",
   LOCAL_ROUND_LAB = "3",
+  POLYGON_MAINNET = "137",
+  MUMBAI = "80001",
 }
 
 export type Result = {
@@ -99,6 +101,7 @@ export type QFVotedEvent = {
   token: string;
   from: string;
   id: string;
+  projectId: string;
 };
 
 export type QFContributionSummary = {
