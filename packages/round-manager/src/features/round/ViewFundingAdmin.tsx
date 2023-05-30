@@ -46,6 +46,7 @@ export default function ViewFundingAdmin(props: {
       )}
       {/*{isAfterRoundEndDate && (*/}
       <InformationContent
+        finalizeEnabled={!!isAfterRoundEndDate}
         round={props.round}
         chainId={props.chainId}
         roundId={props.roundId}
@@ -83,6 +84,7 @@ function InformationContent(props: {
   round: Round | undefined;
   chainId: string;
   roundId: string | undefined;
+  finalizeEnabled: boolean;
 }) {
   const [useDefault, setUseDefault] = useState(true);
   const [customMatchingData, setCustomMatchingData] = useState<
@@ -144,6 +146,7 @@ function InformationContent(props: {
           useContractData={useContractData}
           setUseContractData={setUseContractData}
           matchingDistributionContract={matchingDistributionContract}
+          saveToContractDisabled={!props.finalizeEnabled}
         />
       )}
     </>
@@ -271,6 +274,7 @@ function FinalizeRound(props: {
   useContractData: boolean;
   setUseContractData: (useContractData: boolean) => void;
   matchingDistributionContract: MatchingStatsData[] | undefined;
+  saveToContractDisabled: boolean;
 }) {
   const [openInfoModal, setOpenInfoModal] = useState(false);
   const [openProgressModal, setOpenProgressModal] = useState(false);
@@ -390,7 +394,10 @@ function FinalizeRound(props: {
                       onClick={() => setOpenInfoModal(true)}
                       type="submit"
                       className="my-5 w-full flex justify-center tracking-wide focus:outline-none focus:shadow-outline shadow-lg cursor-pointer"
-                      disabled={!props.useDefault && !props.customMatchingData}
+                      disabled={
+                        (!props.useDefault && !props.customMatchingData) ||
+                        props.saveToContractDisabled
+                      }
                     >
                       Finalize and save to contract
                     </Button>
