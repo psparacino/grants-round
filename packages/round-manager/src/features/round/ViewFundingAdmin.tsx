@@ -39,14 +39,18 @@ export default function ViewFundingAdmin(props: {
 
   return (
     <div>
-      {isBeforeRoundEndDate && <NoInformationContent />}
-      {isAfterRoundEndDate && (
-        <InformationContent
-          round={props.round}
-          chainId={props.chainId}
-          roundId={props.roundId}
-        />
+      {isBeforeRoundEndDate && (
+        <div className="mt-4 p-4 bg-red-50 text-red-600 text-xl">
+          ! Round has not finished yet !
+        </div>
       )}
+      {/*{isAfterRoundEndDate && (*/}
+      <InformationContent
+        round={props.round}
+        chainId={props.chainId}
+        roundId={props.roundId}
+      />
+      {/*)}*/}
     </div>
   );
 }
