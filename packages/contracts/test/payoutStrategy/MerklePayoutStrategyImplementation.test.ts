@@ -390,6 +390,44 @@ describe("MerklePayoutStrategyImplementation", () => {
             .payout(distribution)
         ).to.be.revertedWith("not round operator");
       });
+      it("invoking withdraw funds on the payout contract should withdraw all tokens", async () => {
+        const amount = ethers.utils.parseEther("10");
+        await mockERC20Contract.connect(user).mint(amount);
+        await mockERC20Contract
+          .connect(user)
+          .transfer(merklePayoutStrategyImplementation.address, amount);
+        expect(
+          await mockERC20Contract.balanceOf(
+            merklePayoutStrategyImplementation.address
+          )
+        ).to.equal(amount);
+        await expect(
+          merklePayoutStrategyImplementation.withdrawFunds(user.address)
+        ).to.not.be.reverted;
+        expect(
+          await mockERC20Contract.balanceOf(
+            merklePayoutStrategyImplementation.address
+          )
+        ).to.equal(ethers.utils.parseEther("0"));
+      });
+      it("invoking withdraw funds on the payout contract SHOULD revert if called by wrong EOA ", async () => {
+        const [_, rando] = await ethers.getSigners();
+        const amount = ethers.utils.parseEther("10");
+        await mockERC20Contract.connect(user).mint(amount);
+        await mockERC20Contract
+          .connect(user)
+          .transfer(merklePayoutStrategyImplementation.address, amount);
+        expect(
+          await mockERC20Contract.balanceOf(
+            merklePayoutStrategyImplementation.address
+          )
+        ).to.equal(amount);
+        await expect(
+          merklePayoutStrategyImplementation
+            .connect(rando)
+            .withdrawFunds(user.address)
+        ).to.be.revertedWith("not round operator");
+      });
     });
   });
 });
