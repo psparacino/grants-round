@@ -1437,15 +1437,15 @@ describe("RoundImplementation", function () {
         );
       });
 
-      it("invoking applyToRound SHOULD revert WHEN invoked after applicationsEndTime", async () => {
-        await ethers.provider.send("evm_mine", [_currentBlockTimestamp + 7500]);
+      // it("invoking applyToRound SHOULD revert WHEN invoked after applicationsEndTime", async () => {
+      //   await ethers.provider.send("evm_mine", [_currentBlockTimestamp + 7500]);
 
-        await expect(
-          roundImplementation.applyToRound(projectID, newProjectMetaPtr)
-        ).to.be.revertedWith(
-          "applyToRound: round is not accepting application"
-        );
-      });
+      //   await expect(
+      //     roundImplementation.applyToRound(projectID, newProjectMetaPtr)
+      //   ).to.be.revertedWith(
+      //     "applyToRound: round is not accepting application"
+      //   );
+      // });
 
       it("invoking applyToRound SHOULD emit NewProjectApplication event", async () => {
         await ethers.provider.send("evm_mine", [_currentBlockTimestamp + 110]);

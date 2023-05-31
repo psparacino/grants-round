@@ -6,7 +6,7 @@
 
 Merkle Payout Strategy contract which is deployed once per round and is used to upload the final match distribution.
 
-*- TODO: add function distribute() to actually distribute the funds*
+
 
 ## Methods
 

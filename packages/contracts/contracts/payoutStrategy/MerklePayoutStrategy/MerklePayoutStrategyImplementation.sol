@@ -12,9 +12,6 @@ import "../../utils/MetaPtr.sol";
 /**
  * @notice Merkle Payout Strategy contract which is deployed once per round
  * and is used to upload the final match distribution.
- *
- * @dev
- *  - TODO: add function distribute() to actually distribute the funds
  */
 contract MerklePayoutStrategyImplementation is IPayoutStrategy, Initializable {
     using SafeERC20 for IERC20;

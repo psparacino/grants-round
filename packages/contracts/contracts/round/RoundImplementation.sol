@@ -374,13 +374,7 @@ contract RoundImplementation is AccessControlEnumerable, Initializable {
     function applyToRound(
         bytes32 projectID,
         MetaPtr calldata newApplicationMetaPtr
-    ) external {
-        // slither-disable-next-line timestamp
-        require(
-            applicationsStartTime <= block.timestamp &&
-                block.timestamp <= applicationsEndTime,
-            "applyToRound: round is not accepting application"
-        );
+    ) roundHasNotEnded external {
         emit NewProjectApplication(projectID, newApplicationMetaPtr);
     }
 
