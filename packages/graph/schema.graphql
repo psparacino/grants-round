@@ -126,3 +126,27 @@ type QFVote @entity {
   createdAt: BigInt!
   # round: Round!
 }
+
+
+type QuadraticTipping @entity {
+  id: ID!
+  round: Round! 
+  matchAmount: BigInt!
+  votes: [QFVote!]!
+  distributions: [QuadraticTippingDistribution!]!
+  readyForPayout: Boolean!
+  batchPayoutCompleted: Boolean!
+}
+
+########################
+# = Payouts = #
+########################
+
+
+type QuadraticTippingDistribution @entity {
+  id: ID!
+  address: String!
+  amount: BigInt!
+  projectId: String!
+  token: String!
+}

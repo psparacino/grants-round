@@ -1,6 +1,6 @@
 import { log } from "@graphprotocol/graph-ts";
 import { Voted as VotedEvent } from "../../../generated/QuadraticFundingRelayStrategy/QuadraticFundingRelayStrategyImplementation";
-import { Round, QFVote, VotingStrategy } from "../../../generated/schema";
+import { QuadraticTipping, QFVote, VotingStrategy } from "../../../generated/schema";
 import { generateID } from "../../utils";
 
 const VERSION = "0.1.0";
@@ -61,4 +61,18 @@ export function handleVote(event: VotedEvent): void {
   vote.version = VERSION;
 
   vote.save();
+
+  let quadraticTipping = QuadraticTipping.load(votingStrategy.round!);
+
+  if (!quadraticTipping) {
+    log.warning("quadraticTipping {}", [
+      votingStrategy.round!
+    ]);
+    return;
+  }
+  let roundVotes = quadraticTipping.votes;
+  roundVotes.push(vote.id);
+  quadraticTipping.votes = roundVotes;
+  quadraticTipping.save();
+
 }

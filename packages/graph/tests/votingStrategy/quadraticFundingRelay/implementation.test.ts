@@ -6,11 +6,18 @@ import {
   beforeEach,
   clearStore,
   afterEach,
+  log,
 } from "matchstick-as/assembly/index";
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { handleVote } from "../../../src/votingStrategy/quadraticFundingRelay/implementation";
 import { Voted as VotedEvent } from "../../../generated/QuadraticFundingRelayStrategy/QuadraticFundingRelayStrategyImplementation";
-import { QFVote, Round, VotingStrategy } from "../../../generated/schema";
+import {
+  QFVote,
+  Round,
+  VotingStrategy,
+  QuadraticTipping,
+  QuadraticTippingDistribution,
+} from "../../../generated/schema";
 import { generateID } from "../../../src/utils";
 import { Bytes } from "@graphprotocol/graph-ts";
 
@@ -99,6 +106,30 @@ describe("handleVote", () => {
       "0xA16081F360e3847006dB660bae1c6d1b2e17eC2G";
     votingStrategyEntity.version = "0.1.0";
     votingStrategyEntity.save();
+
+    // create QuadradicTippingDistribution entity
+    const quadraticTippingDistributionEntity = new QuadraticTippingDistribution(
+      "quadraticTippingDistribution"
+    );
+    quadraticTippingDistributionEntity.id = roundAddress.toHex();
+    quadraticTippingDistributionEntity.address = "";
+    quadraticTippingDistributionEntity.amount = new BigInt(0);
+    quadraticTippingDistributionEntity.projectId = "";
+    quadraticTippingDistributionEntity.token = "";
+    quadraticTippingDistributionEntity.save();
+
+    // create QuadraticTipping entity
+    const quadraticTippingEntity = new QuadraticTipping(
+      "quadraticTippingStats"
+    );
+    quadraticTippingEntity.id = roundAddress.toHex();
+    quadraticTippingEntity.round = roundAddress.toHex();
+    quadraticTippingEntity.matchAmount = new BigInt(0);
+    quadraticTippingEntity.votes = [];
+    quadraticTippingEntity.distributions = [];
+    quadraticTippingEntity.batchPayoutCompleted = false;
+    quadraticTippingEntity.readyForPayout = false;
+    quadraticTippingEntity.save();
 
     // Create Round entity
     const roundEntity = new Round(roundAddress.toHex());
@@ -212,5 +243,27 @@ describe("handleVote", () => {
       grantAddress.toHex(),
     ]);
     assert.assertNotNull(QFVote.load(anotherId));
+  });
+
+  test("QFVote is logged to the QuadraticTipping entity", () => {
+    handleVote(newVoteEvent);
+
+    const id = generateID([
+      newVoteEvent.transaction.hash.toHex(),
+      grantAddress.toHex(),
+    ]);
+
+    const quadraticTipping = QuadraticTipping.load(roundAddress.toHex());
+    assert.assertNotNull(quadraticTipping);
+
+    let voteLogged = false;
+    for (let i = 0; i < quadraticTipping!.votes.length; i++) {
+      if (quadraticTipping!.votes[i] == id) {
+        voteLogged = true;
+        break;
+      }
+    }
+
+    assert.assertTrue(voteLogged);
   });
 });
