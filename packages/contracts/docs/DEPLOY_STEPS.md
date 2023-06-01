@@ -230,7 +230,9 @@ yarn run deploy-qf-relay-implementation goerli
 yarn run link-qf-relay-implementation goerli
 
 # Payout
-yarn run deploy-merkle-contract goerli
+yarn run deploy-merkle-payout-factory goerli
+yarn run deploy-merkle-payout-implementation goerli
+yarn run link-merkle-payout goerli
 
 # Round
 yarn run deploy-round-factory goerli

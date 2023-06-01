@@ -34,8 +34,8 @@ export const QFVotingParams: DeployParams = {
     contract: "0x02B52C3a398567AdFffb3396d6eE3d3c2bff37fE",
   },
   "polygon-mumbai": {
-    factory: "0xA86837773d8167C20f648Fcc11dB7eA4B95B4b7A",
-    implementation: "0x54eF677eac9056F7aa5bA7CF5C9e2F4d6072e64c",
+    factory: "0xA9e84078d3F40d284D494D02f6C8b1d175b28bB2",
+    implementation: "0x810A1D1e27d4B5eddd9E2c5Ca33339f0A41bdd9d",
     contract: "0xb699801f40079b793d806a5a96b37bceaee4c838",
   },
 };
@@ -52,8 +52,8 @@ export const QFRelayParams: DeployParams = {
     contract: "",
   },
   "polygon-mumbai": {
-    factory: "0x0637876724150495d2B4F73A18EA87bCb78E63DB",
-    implementation: "0xECcBFe205B79B7D4c9e478db3acee055342C7506",
-    contract: "0xb699801f40079b793d806a5a96b37bceaee4c838",
+    factory: "0xBcC6f8AeCCd46b941A3A0BFd5eC3E0155Bcb78ba",
+    implementation: "0xfCAD218132214E2e329bA35b7771a80b2f777EF1",
+    contract: "0x2c18a01d8E8B282905F9D14Dc3781cCEd5fF9aF4",
   },
 };

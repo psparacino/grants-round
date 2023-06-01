@@ -41,7 +41,10 @@
     "create-qf-relay-contract": "yarn hardhat run scripts/votingStrategy/quadraticFundingRelay/createQFRelayStrategy.ts --network",
     "cast-qf-relay-vote": "yarn hardhat run scripts/votingStrategy/quadraticFundingRelay/castQFRelayViaRound.ts --network",
     "// payout-deploy-scripts": "echo '//-- Payout deploy Script --//'",
-    "deploy-merkle-contract": "yarn hardhat run scripts/payoutStrategy/deployMerklePayoutStrategy.ts --network"
+    "deploy-merkle-payout-factory": "yarn hardhat run scripts/payoutStrategy/deployMerklePayoutStrategyFactory.ts --network",
+    "deploy-merkle-payout-implementation": "yarn hardhat run scripts/payoutStrategy/deployMerklePayoutStrategyImplementation.ts --network",
+    "link-merkle-payout": "yarn hardhat run scripts/payoutStrategy/linkMerklePayoutStrategy.ts --network",
+    "create-merkle-payout-contract": "yarn hardhat run scripts/payoutStrategy/createMerklePayoutStrategy.ts --network"
   },
   "devDependencies": {
     "@ethersproject/constants": "^5.6.1",

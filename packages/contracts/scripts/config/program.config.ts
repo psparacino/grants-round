@@ -34,8 +34,8 @@ export const programParams: DeployParams = {
     programContract: "0x3Cd6edA7fDF9ab6b6AF6E226Ce184569C5DF8Ae5",
   },
   "polygon-mumbai": {
-    programFactoryContract: "0xbd2a2C4f3841f39e1112622596A1AE325B26Fe54",
-    programImplementationContract: "0xe22FdDa2BD00084e9DeFD15875e70876f8eb3BbC",
-    programContract: "0xD4E0bEFF8835c350E49678d675e32843f1Af6125",
+    programFactoryContract: "0xcc19871C2DaFF31dC1A7add1240B6819A8F4E544",
+    programImplementationContract: "0x109d295159Cd51dD1EdE58636e375b9AE76A8803",
+    programContract: "0x38DF6A626978B7ac7FB74F8FFdfAF4194C361EE1",
   },
 };
