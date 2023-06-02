@@ -85,12 +85,38 @@
     "inputs": [
       {
         "indexed": false,
+        "internalType": "uint256",
+        "name": "matchAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "EscrowFundsToPayoutContract",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
         "internalType": "uint8",
         "name": "version",
         "type": "uint8"
       }
     ],
     "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "MatchAmountUpdated",
     "type": "event"
   },
   {
@@ -542,6 +568,19 @@
   },
   {
     "inputs": [],
+    "name": "matchAmount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "payoutStrategy",
     "outputs": [
       {
@@ -652,6 +691,13 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "setReadyForPayout",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes4",
@@ -737,12 +783,12 @@
   {
     "inputs": [
       {
-        "internalType": "bytes",
-        "name": "encodedDistribution",
-        "type": "bytes"
+        "internalType": "uint256",
+        "name": "newAmount",
+        "type": "uint256"
       }
     ],
-    "name": "updateDistribution",
+    "name": "updateMatchAmount",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -848,5 +894,27 @@
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "tokenAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address payable",
+        "name": "recipent",
+        "type": "address"
+      }
+    ],
+    "name": "withdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
   }
 ]

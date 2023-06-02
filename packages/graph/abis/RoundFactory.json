@@ -125,7 +125,7 @@
     "name": "roundContract",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "address payable",
         "name": "",
         "type": "address"
       }
@@ -149,7 +149,7 @@
   {
     "inputs": [
       {
-        "internalType": "address",
+        "internalType": "address payable",
         "name": "newRoundContract",
         "type": "address"
       }
