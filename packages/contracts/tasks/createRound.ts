@@ -1,4 +1,3 @@
-import { Provider } from "react-redux";
 import { Contract } from "ethers";
 import * as fs from "fs";
 import { task } from "hardhat/config";
