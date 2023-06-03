@@ -21,18 +21,18 @@
     "prepare:mumbai": "mustache config/mumbai.json subgraph.template.yaml > subgraph.yaml",
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ thelostone-mc/program-factory",
-    "create-local": "graph create --node http://localhost:8020/ thelostone-mc/program-factory",
-    "remove-local": "graph remove --node http://localhost:8020/ thelostone-mc/program-factory",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 thelostone-mc/program-factory",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ bitbeckers/ql-dev",
+    "create-local": "graph create --node http://localhost:8020/ bitbeckers/ql-dev",
+    "remove-local": "graph remove --node http://localhost:8020/ bitbeckers/ql-dev",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 bitbeckers/ql-dev",
     "test": "graph test"
   },
   "dependencies": {
-    "@graphprotocol/graph-ts": "0.27.0",
+    "@graphprotocol/graph-ts": "0.31.0",
     "@openzeppelin/subgraphs": "^0.1.8"
   },
   "devDependencies": {
-    "matchstick-as": "^0.5.0",
+    "matchstick-as": "^0.5.2",
     "mustache": "^4.2.0"
   }
 }

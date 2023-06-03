@@ -1,8 +1,8 @@
 {
   "network": "mumbai",
-  "startBlock": 31402729,
-  "programFactoryAddress": "0xbd2a2C4f3841f39e1112622596A1AE325B26Fe54",
-  "QFVotingStrategyFactoryAddress": "0xA86837773d8167C20f648Fcc11dB7eA4B95B4b7A",
-  "QFRelayStrategyFactoryAddress": "0x0637876724150495d2B4F73A18EA87bCb78E63DB",
-  "roundFactoryAddress": "0x36Ca0662fd2af176B10CEA7f2aBa0BB299B6E6c5"
+  "startBlock": 36285000,
+  "programFactoryAddress": "0xcc19871C2DaFF31dC1A7add1240B6819A8F4E544",
+  "QFVotingStrategyFactoryAddress": "0xBcC6f8AeCCd46b941A3A0BFd5eC3E0155Bcb78ba",
+  "QFRelayStrategyFactoryAddress": "0xBcC6f8AeCCd46b941A3A0BFd5eC3E0155Bcb78ba",
+  "roundFactoryAddress": "0x6bef29C694Ca94c0640f0D01D5EE5c17C7eAba94"
 }

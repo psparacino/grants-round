@@ -37,5 +37,6 @@ export const roundParams: DeployParams = {
     roundFactoryContract: "0x6bef29C694Ca94c0640f0D01D5EE5c17C7eAba94",
     roundImplementationContract: "0xa1BE219d09Db0B07D4989E2042905a3B6126f1d7",
     roundContract: "0x203b6d29ADc60d32Cc33b811E6E6c669847Af8A3",
+
   },
 };
