@@ -28,6 +28,9 @@ cp ../.env.example ../.env
 
 
 ### UPDATED DEPLOY SCRIPTS can be run on polygon-mumbai, localhost, and polygon
+
+if you would like to use the old deployment method skip to "OLD DEPLOYMENT METHOD"  if you want to save some time and effort just do the next two steps.
+
 (if you want to create a local environment open a new terminal and run `yarn run-node` then in a new window run `yarn create-local-environment`)
 
   2. deploy all contracts
@@ -43,8 +46,11 @@ cp ../.env.example ../.env
   yarn create-new-round polygon-mumbai
   ```
 
-     follow instructions and then you're done.
+     follow instructions and then you're done you can stop here.
 
+
+
+### OLD DEPLOYMENT METHOD
 
 2. Deploy the `ProgramFactory` contract
 
