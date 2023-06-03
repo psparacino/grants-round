@@ -1,3 +1,4 @@
+import { Provider } from "react-redux";
 import { Contract } from "ethers";
 import * as fs from "fs";
 import { task } from "hardhat/config";
@@ -51,7 +52,7 @@ task("createRound", "Create a new Round")
     ) => {
       let addresses;
       const signers: SignerWithAddress[] = await hre.ethers.getSigners();
-      console.log(programCid, applicationCid, roundCid, admin, operators);
+
       let adminAddress: string[] = [];
       if (admin === undefined) {
         signers.forEach((signer) => {
@@ -68,7 +69,7 @@ task("createRound", "Create a new Round")
       } else {
         programOperators = operators;
       }
-
+      console.log("NETWORK");
       if (hre.network.name == "polygon-mainnet") {
         addresses = POLYGON;
       } else if (hre.network.name == "polygon-mumbai") {
@@ -110,6 +111,7 @@ task("createRound", "Create a new Round")
         MerklePayoutStrategyContract: "",
       };
       // clone program
+      console.log("LACALHOST");
       try {
         if (!addresses.ProgramFactory) {
           throw new Error("Missing programFactory address");
@@ -169,7 +171,9 @@ task("createRound", "Create a new Round")
         });
 
         const votingStrategyTx =
-          await contracts.QuadraticFundingRelayStrategyFactory.connect(signers[0]).create();
+          await contracts.QuadraticFundingRelayStrategyFactory.connect(
+            signers[0]
+          ).create();
 
         const receipt = await votingStrategyTx.wait();
 
@@ -210,7 +214,9 @@ task("createRound", "Create a new Round")
         });
 
         const payoutStrategy =
-          await contracts.MerklePayoutStrategyFactory.connect(signers[0]).create();
+          await contracts.MerklePayoutStrategyFactory.connect(
+            signers[0]
+          ).create();
 
         const receipt = await payoutStrategy.wait();
 
@@ -270,7 +276,15 @@ task("createRound", "Create a new Round")
           network: hre.network.name,
           chainId: hre.network.config.chainId,
         });
-        const currentTimestamp = await time.latest();
+        let currentTimestamp: number;
+        if (hre.network.name === "localHost") {
+          currentTimestamp = await time.latest();
+        } else {
+          const block = await ethers.provider.getBlock(
+            await ethers.provider.getBlockNumber()
+          );
+          currentTimestamp = block.timestamp;
+        }
         const applicationsStartTime = currentTimestamp + 10; // 1 second later
         const applicationsEndTime = currentTimestamp + 20; // 2 seconds later
         const roundStartTime = currentTimestamp + 50; // 1 hour later
