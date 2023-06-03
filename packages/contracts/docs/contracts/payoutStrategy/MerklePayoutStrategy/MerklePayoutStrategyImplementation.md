@@ -1,12 +1,12 @@
-# IPayoutStrategy
+# MerklePayoutStrategyImplementation
 
 
 
 
 
-Defines the abstract contract for payout strategies for a round. Any new payout strategy would be expected to extend this abstract contract. Every IPayoutStrategy contract would be unique to RoundImplementation and would be deployed before creating a round 
+Merkle Payout Strategy contract which is deployed once per round and is used to upload the final match distribution.
 
-*- Deployed before creating a round  - init will be invoked during round creation to link the payout    strategy to the round contract   - TODO: add function distribute() to actually distribute the funds  *
+
 
 ## Methods
 
@@ -56,13 +56,24 @@ Invoked by RoundImplementation on creation to set the round for which the payout
 
 
 
+### initialize
+
+```solidity
+function initialize() external nonpayable
+```
+
+
+
+
+
+
 ### isDistributionSet
 
 ```solidity
 function isDistributionSet() external view returns (bool)
 ```
 
-checks that distribution is set before setReadyForPayout
+function to check if distribution is set
 
 
 
@@ -89,6 +100,39 @@ function isReadyForPayout() external view returns (bool)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined |
+
+### merkleRoot
+
+```solidity
+function merkleRoot() external view returns (bytes32)
+```
+
+merkle root generated from distribution
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined |
+
+### payout
+
+```solidity
+function payout(MerklePayoutStrategyImplementation.Distribution[] _distributions) external payable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _distributions | MerklePayoutStrategyImplementation.Distribution[] | undefined |
 
 ### roundAddress
 
@@ -138,18 +182,18 @@ Token address
 ### updateDistribution
 
 ```solidity
-function updateDistribution(bytes _encodedDistribution) external nonpayable
+function updateDistribution(bytes encodedDistribution) external nonpayable
 ```
 
 Invoked by RoundImplementation to upload distribution to the payout strategy
 
-*- should be invoked by RoundImplementation contract - ideally IPayoutStrategy implementation should emit events after    distribution is updated - would be invoked at the end of the round*
+*- should be invoked by RoundImplementation contract - ideally IPayoutStrategy implementation should emit events after   distribution is updated - would be invoked at the end of the round*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _encodedDistribution | bytes | encoded distribution |
+| encodedDistribution | bytes | encoded distribution |
 
 ### withdrawFunds
 
@@ -171,6 +215,58 @@ Invoked by RoundImplementation to withdraw funds to withdrawAddress from the pay
 
 ## Events
 
+### BatchPayoutSuccessful
+
+```solidity
+event BatchPayoutSuccessful(address indexed sender)
+```
+
+Emitted when batch payout is successful
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sender `indexed` | address | undefined |
+
+### DistributionUpdated
+
+```solidity
+event DistributionUpdated(bytes32 merkleRoot, MetaPtr distributionMetaPtr)
+```
+
+Emitted when the distribution is updated
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| merkleRoot  | bytes32 | undefined |
+| distributionMetaPtr  | MetaPtr | undefined |
+
+### FundsDistributed
+
+```solidity
+event FundsDistributed(uint256 amount, address grantee, address indexed token, bytes32 indexed projectId)
+```
+
+Emitted when funds are distributed
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| amount  | uint256 | undefined |
+| grantee  | address | undefined |
+| token `indexed` | address | undefined |
+| projectId `indexed` | bytes32 | undefined |
+
 ### FundsWithdrawn
 
 ```solidity
@@ -188,6 +284,22 @@ Emitted when funds are withdrawn from the payout contract
 | tokenAddress `indexed` | address | undefined |
 | amount  | uint256 | undefined |
 | withdrawAddress  | address | undefined |
+
+### Initialized
+
+```solidity
+event Initialized(uint8 version)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| version  | uint8 | undefined |
 
 ### ReadyForPayout
 
