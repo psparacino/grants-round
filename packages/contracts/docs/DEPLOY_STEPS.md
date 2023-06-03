@@ -5,11 +5,10 @@ All the deploy scripts will expect network param to know which network the contr
 
 | network            |
 | ------------------ |
-| `goerli`           |
-| `optimism-mainnet` |
-| 'fantom-mainnet'   |
-| `fantom-testnet`   |
-| `mainnet`          |
+| `localhost`           |
+| `polygon-mumbai` |
+| 'polygon'   |
+
 
 ### Program Setup
 
@@ -26,6 +25,26 @@ cp ../.env.example ../.env
    - `INFURA_ID` : Infura ID for deploying contract
    - `DEPLOYER_PRIVATE_KEY` : address which deploys the contract
    - `ETHERSCAN_API_KEY` : API key for etherscan verification
+
+
+### UPDATED DEPLOY SCRIPTS can be run on polygon-mumbai, localhost, and polygon
+(if you want to create a local environment open a new terminal and run `yarn run-node` then in a new window run `yarn create-local-environment`)
+
+  2. deploy all contracts
+
+ ```shell
+  yarn deploy-all polygon-mumbai
+  ```
+  follow instructions
+
+  3. create a new round
+  
+```shell
+  yarn create-round polygon-mumbai
+  ```
+
+     follow instructions and then you're done.
+
 
 2. Deploy the `ProgramFactory` contract
 

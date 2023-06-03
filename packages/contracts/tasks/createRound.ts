@@ -214,25 +214,24 @@ task("createRound", "Create a new Round")
 
         const receipt = await payoutStrategy.wait();
 
-        console.log(receipt);
         if (receipt.events) {
           const event = receipt.events.find(
             (e) => e.event === "PayoutContractCreated"
           );
           if (event && event.args) {
-            console.log("PayoutContractCreated", event.args);
             deployments.MerklePayoutStrategyContract =
               event.args.payoutImplementation;
           }
           if (!event) {
             const event = receipt.events.find((e) => e.event === "Initialized");
             deployments.MerklePayoutStrategyContract = event?.address;
-            console.log(
-              "INITIALIZED",
-              deployments.MerklePayoutStrategyContract
-            );
           }
         }
+        console.log("✅ Txn hash: " + receipt.hash);
+        console.log(
+          "✅ Merkle Payout Contract Created: ",
+          deployments.MerklePayoutStrategyContract
+        );
       } catch (err) {
         console.error(err);
       }
