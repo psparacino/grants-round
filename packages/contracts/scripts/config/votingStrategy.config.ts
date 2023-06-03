@@ -52,8 +52,8 @@ export const QFRelayParams: DeployParams = {
     contract: "",
   },
   "polygon-mumbai": {
-    factory: "0x0637876724150495d2B4F73A18EA87bCb78E63DB",
-    implementation: "0xECcBFe205B79B7D4c9e478db3acee055342C7506",
-    contract: "0xb699801f40079b793d806a5a96b37bceaee4c838",
+    factory: "0xBcC6f8AeCCd46b941A3A0BFd5eC3E0155Bcb78ba",
+    implementation: "0xC70c6E7eE21A565fBd53A9f624704BFd24D3C5eA",
+    contract: "0x9a34f4e90bbef1c38927ac75a702a2d0c4a1ea5d",
   },
 };
