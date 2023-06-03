@@ -40,7 +40,7 @@ cp ../.env.example ../.env
   3. create a new round
   
 ```shell
-  yarn create-round polygon-mumbai
+  yarn create-new-round polygon-mumbai
   ```
 
      follow instructions and then you're done.

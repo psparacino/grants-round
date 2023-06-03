@@ -1,1 +1,6 @@
-{"ProgramContract":"0x8e4c1cFf33861649f45D7D2d6F655Fd9E3C21513","RoundContract":"0x47EA9Baf21E63d3338D286589Feec8c22A8Fd780","QuadraticFundingRelayStrategyContract":"0x907dd1FF6AeDEe6960B9F42e3c3cd5B378EBcAFc","MerklePayoutStrategyContract":"0x9160940aBE2a1176330a6a86c77E17bB4FF22a1c"}
+{
+  "ProgramContract": "0x8e4c1cFf33861649f45D7D2d6F655Fd9E3C21513",
+  "RoundContract": "0x47EA9Baf21E63d3338D286589Feec8c22A8Fd780",
+  "QuadraticFundingRelayStrategyContract": "0x907dd1FF6AeDEe6960B9F42e3c3cd5B378EBcAFc",
+  "MerklePayoutStrategyContract": "0x9160940aBE2a1176330a6a86c77E17bB4FF22a1c"
+}
