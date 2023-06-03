@@ -44,7 +44,8 @@
     "deploy-merkle-payout-factory": "yarn hardhat run scripts/payoutStrategy/deployMerklePayoutStrategyFactory.ts --network",
     "deploy-merkle-payout-implementation": "yarn hardhat run scripts/payoutStrategy/deployMerklePayoutStrategyImplementation.ts --network",
     "link-merkle-payout": "yarn hardhat run scripts/payoutStrategy/linkMerklePayoutStrategy.ts --network",
-    "create-merkle-payout-contract": "yarn hardhat run scripts/payoutStrategy/createMerklePayoutStrategy.ts --network"
+    "create-merkle-payout-contract": "yarn hardhat run scripts/payoutStrategy/createMerklePayoutStrategy.ts --network",
+    "deploy-all": "yarn hardhat deploy --network"
   },
   "devDependencies": {
     "@ethersproject/constants": "^5.6.1",

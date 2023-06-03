@@ -13,6 +13,8 @@ import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "hardhat-abi-exporter";
 
+import "./tasks";
+
 dotenv.config();
 
 const chainIds = {
@@ -137,7 +139,9 @@ const config: HardhatUserConfig = {
       ...createTestnetConfig("polygon-mumbai"),
       url: "https://rpc.ankr.com/polygon_mumbai",
     },
-    localhost: createTestnetConfig("localhost", "http://localhost:8545"),
+    localhost: {
+      chainId: 31337
+    },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,

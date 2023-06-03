@@ -51,12 +51,13 @@ export async function main() {
       (e) => e.event === "PayoutContractCreated"
     );
     if (event && event.args) {
-      console.log(event.args);
+      console.log("PayoutContractCreated", event.args);
       payoutStrategyAddress = event.args.payoutImplementation;
     }
     if (!event) {
       const event = receipt.events.find((e) => e.event === "Initialized");
       payoutStrategyAddress = event?.address;
+      console.log("INITIALIZED", payoutStrategyAddress);
     }
   }
 
