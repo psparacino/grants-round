@@ -98,6 +98,7 @@ export const useRoundMatchData = (chainId: string, roundId: string) => {
   const [roundMatchData, setRoundMatchData] = useState<QFDistribution[]>();
   const [error, setError] = useState<Response | undefined>();
   const [loading, setLoading] = useState(false);
+  const [refetching, setRefetching] = useState(false);
 
   useMemo(() => {
     setLoading(true);
@@ -123,11 +124,29 @@ export const useRoundMatchData = (chainId: string, roundId: string) => {
           setError(data.message);
         }
         setLoading(false);
+        setRefetching(false);
       });
-  }, [chainId, roundId]);
+  }, [chainId, roundId, refetching]);
   return {
     data: roundMatchData,
     error,
     loading,
+    refetch: () => setRefetching(true),
   };
+};
+
+export const updateRoundMatchData = (chainId: string, roundId: string) => {
+  const url = `${process.env.REACT_APP_GRANTS_API_ENDPOINT}/update/match/round/${chainId}/${roundId}`;
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((resp) => {
+      return resp.json();
+    })
+    .then((data) => {
+      return data.success;
+    });
 };

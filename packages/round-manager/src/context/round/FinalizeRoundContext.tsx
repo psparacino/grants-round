@@ -19,10 +19,14 @@ import {
 } from "../../features/api/round";
 import { datadogLogs } from "@datadog/browser-logs";
 import { ethers } from "ethers";
+import { QFDistribution } from "../../features/api/api";
+import { generateStandardMerkleTree } from "../../features/api/utils";
+import { useQuery } from "wagmi";
 
 export interface FinalizeRoundState {
   IPFSCurrentStatus: ProgressStatus;
   finalizeRoundToContractStatus: ProgressStatus;
+  setReadForPayoutStatus: ProgressStatus;
 }
 
 interface _finalizeRoundParams {
@@ -30,12 +34,14 @@ interface _finalizeRoundParams {
   roundId: string;
   matchingJSON: MatchingStatsData[] | undefined;
   signerOrProvider: Web3Instance["provider"];
+  distribution: QFDistribution[];
 }
 
 type Action =
   | SET_DEPLOYMENT_STATUS_ACTION
   | SET_STORING_STATUS_ACTION
-  | RESET_TO_INITIAL_STATE_ACTION;
+  | RESET_TO_INITIAL_STATE_ACTION
+  | SET_READY_FOR_PAYOUT_STATUS;
 
 type SET_STORING_STATUS_ACTION = {
   type: ActionType.SET_STORING_STATUS;
@@ -51,6 +57,13 @@ type SET_DEPLOYMENT_STATUS_ACTION = {
   };
 };
 
+type SET_READY_FOR_PAYOUT_STATUS = {
+  type: ActionType.SET_READY_FOR_PAYOUT_STATUS;
+  payload: {
+    setReadyForPayoutStatus: ProgressStatus;
+  };
+};
+
 type RESET_TO_INITIAL_STATE_ACTION = {
   type: ActionType.RESET_TO_INITIAL_STATE;
 };
@@ -60,12 +73,14 @@ type Dispatch = (action: Action) => void;
 enum ActionType {
   SET_STORING_STATUS = "SET_STORING_STATUS",
   SET_DEPLOYMENT_STATUS = "SET_DEPLOYMENT_STATUS",
+  SET_READY_FOR_PAYOUT_STATUS = "SET_READY_FOR_PAYOUT_STATUS",
   RESET_TO_INITIAL_STATE = "RESET_TO_INITIAL_STATE",
 }
 
 export const initialFinalizeRoundState: FinalizeRoundState = {
   IPFSCurrentStatus: ProgressStatus.NOT_STARTED,
   finalizeRoundToContractStatus: ProgressStatus.NOT_STARTED,
+  setReadForPayoutStatus: ProgressStatus.NOT_STARTED,
 };
 
 export const FinalizeRoundContext = createContext<
@@ -81,6 +96,11 @@ const finalizeRoundReducer = (state: FinalizeRoundState, action: Action) => {
         ...state,
         finalizeRoundToContractStatus:
           action.payload.finalizeRoundToContractStatus,
+      };
+    case ActionType.SET_READY_FOR_PAYOUT_STATUS:
+      return {
+        ...state,
+        setReadForPayoutStatus: action.payload.setReadyForPayoutStatus,
       };
     case ActionType.RESET_TO_INITIAL_STATE: {
       return initialFinalizeRoundState;
@@ -116,6 +136,7 @@ const _finalizeRound = async ({
   roundId,
   matchingJSON,
   signerOrProvider,
+  distribution,
 }: _finalizeRoundParams) => {
   dispatch({
     type: ActionType.RESET_TO_INITIAL_STATE,
@@ -125,13 +146,19 @@ const _finalizeRound = async ({
       throw new Error("matchingJSON is undefined");
     }
 
+    const tree = generateStandardMerkleTree(distribution);
+
+    console.log(tree.dump());
+
     const IpfsHash = await storeDocument(dispatch, matchingJSON);
 
     const distributionMetaPtr = {
       protocol: 1,
       pointer: IpfsHash,
     };
-    const merkleRoot = "";
+
+    const merkleRoot = tree.root;
+    console.log("root", merkleRoot);
     const transactionBlockNumber = await finalizeToContract(
       dispatch,
       roundId,
@@ -158,12 +185,14 @@ export const useFinalizeRound = () => {
 
   const finalizeRound = (
     roundId: string,
-    matchingJSON: MatchingStatsData[] | undefined
+    matchingJSON: MatchingStatsData[] | undefined,
+    distribution: QFDistribution[]
   ) => {
     return _finalizeRound({
       dispatch: context.dispatch,
       roundId,
       matchingJSON,
+      distribution,
       // @ts-expect-error TODO: resolve this situation around signers and providers
       signerOrProvider: walletSigner,
     });
@@ -173,6 +202,7 @@ export const useFinalizeRound = () => {
     finalizeRound,
     IPFSCurrentStatus: context.state.IPFSCurrentStatus,
     finalizeRoundToContractStatus: context.state.finalizeRoundToContractStatus,
+    setReadyForPayoutStatus: context.state.setReadForPayoutStatus,
   };
 };
 
@@ -225,12 +255,14 @@ async function finalizeToContract(
       payload: { finalizeRoundToContractStatus: ProgressStatus.IN_PROGRESS },
     });
 
-    const merkleRoootInBytes = ethers.utils.formatBytes32String(merkleRoot);
+    const merkleRootInBytes = merkleRoot;
 
     const encodedDistribution = encodeDistributionParameters(
-      merkleRoootInBytes,
+      merkleRootInBytes,
       distributionMetaPtr
     );
+
+    console.log("encodedDistribution", encodedDistribution);
 
     const { transactionBlockNumber } = await finalizeRoundToContract({
       roundId,
@@ -253,6 +285,35 @@ async function finalizeToContract(
       payload: { finalizeRoundToContractStatus: ProgressStatus.IS_ERROR },
     });
 
+    throw error;
+  }
+}
+
+async function setReadyForPayout(
+  dispatch: (action: Action) => void,
+  roundId: string
+) {
+  try {
+    dispatch({
+      type: ActionType.SET_READY_FOR_PAYOUT_STATUS,
+      payload: {
+        setReadyForPayoutStatus: ProgressStatus.IN_PROGRESS,
+      },
+    });
+
+    await setReadyForPayout(dispatch, roundId);
+
+    dispatch({
+      type: ActionType.SET_READY_FOR_PAYOUT_STATUS,
+      payload: { setReadyForPayoutStatus: ProgressStatus.IS_SUCCESS },
+    });
+  } catch (error) {
+    datadogLogs.logger.error(`error: finalizeRoundToContract - ${error}`);
+    console.error(`finalizeRoundToContract`, error);
+    dispatch({
+      type: ActionType.SET_DEPLOYMENT_STATUS,
+      payload: { finalizeRoundToContractStatus: ProgressStatus.IS_ERROR },
+    });
     throw error;
   }
 }

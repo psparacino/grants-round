@@ -13,7 +13,11 @@ import { useNavigate } from "react-router-dom";
 import InfoModal from "../common/InfoModal";
 import ProgressModal from "../common/ProgressModal";
 import ErrorModal from "../common/ErrorModal";
-import { useRoundMatchData } from "../api/api";
+import {
+  QFDistribution,
+  updateRoundMatchData,
+  useRoundMatchData,
+} from "../api/api";
 import { Button } from "../common/styles";
 import { saveObjectAsJson } from "../api/utils";
 import { RadioGroup } from "@headlessui/react";
@@ -67,6 +71,7 @@ function InformationContent(props: {
     MatchingStatsData[] | undefined
   >();
   const [useContractData, setUseContractData] = useState(true);
+  const [updatingMatchData, setUpdatingMatchData] = useState(false);
 
   const {
     distributionMetaPtr,
@@ -83,12 +88,23 @@ function InformationContent(props: {
     }
   }, [distributionMetaPtr, matchingDistributionContract]);
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const { data, error, loading } = useRoundMatchData(
+  const { data, error, loading, refetch } = useRoundMatchData(
     props.chainId,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     props.roundId!
   );
+
+  const onUpdateMatchData = async () => {
+    setUpdatingMatchData(true);
+    await updateRoundMatchData(
+      props.chainId,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      props.roundId!
+    );
+    refetch();
+    setUpdatingMatchData(false);
+  };
+
   const matchingData: MatchingStatsData[] | undefined = data?.map((data) => {
     const project = props.round?.approvedProjects?.filter(
       (project) =>
@@ -106,10 +122,16 @@ function InformationContent(props: {
   return (
     <>
       <div>
-        {(loading || isLoading) && (
+        {(loading || isLoading || updatingMatchData) && (
           <Spinner text="We're fetching the matching data." />
         )}
         {(error || isError) && <ErrorMessage />}
+        <Button
+          className={"ml-8 bg-gray-200 hover:bg-gray-300 text-gray-900"}
+          onClick={onUpdateMatchData}
+        >
+          Update matching stats
+        </Button>
       </div>
       {!error && !isError && !loading && !isLoading && (
         <FinalizeRound
@@ -122,7 +144,9 @@ function InformationContent(props: {
           useContractData={useContractData}
           setUseContractData={setUseContractData}
           matchingDistributionContract={matchingDistributionContract}
-          saveToContractDisabled={!props.finalizeEnabled}
+          saveToContractDisabled={false && !props.finalizeEnabled}
+          distribution={data || []}
+          onUpdateMatchData={onUpdateMatchData}
         />
       )}
     </>
@@ -251,14 +275,20 @@ function FinalizeRound(props: {
   setUseContractData: (useContractData: boolean) => void;
   matchingDistributionContract: MatchingStatsData[] | undefined;
   saveToContractDisabled: boolean;
+  distribution: QFDistribution[];
+  onUpdateMatchData: () => Promise<void>;
 }) {
   const [openInfoModal, setOpenInfoModal] = useState(false);
   const [openProgressModal, setOpenProgressModal] = useState(false);
   const [openErrorModal, setOpenErrorModal] = useState(false);
   const navigate = useNavigate();
 
-  const { finalizeRound, IPFSCurrentStatus, finalizeRoundToContractStatus } =
-    useFinalizeRound();
+  const {
+    finalizeRound,
+    IPFSCurrentStatus,
+    finalizeRoundToContractStatus,
+    setReadyForPayoutStatus,
+  } = useFinalizeRound();
 
   useEffect(() => {
     if (
@@ -288,7 +318,8 @@ function FinalizeRound(props: {
         setOpenProgressModal(true);
         await finalizeRound(
           props.roundId,
-          props.useDefault ? props.matchingData : props.customMatchingData
+          props.useDefault ? props.matchingData : props.customMatchingData,
+          props.distribution
         );
       }
     } catch (error) {
@@ -306,6 +337,11 @@ function FinalizeRound(props: {
       name: "Finalizing",
       description: `The distribution is being finalized in the contract.`,
       status: finalizeRoundToContractStatus,
+    },
+    {
+      name: "Set ready for payout",
+      description: "The contract is being set ready for payout",
+      status: setReadyForPayoutStatus,
     },
     {
       name: "Redirecting",

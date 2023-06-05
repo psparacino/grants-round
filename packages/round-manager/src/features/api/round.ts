@@ -472,6 +472,33 @@ export async function finalizeRoundToContract({
   }
 }
 
+export async function setRoundReadyForPayout({
+  roundId,
+  signerOrProvider,
+}: FinalizeRoundToContractProps) {
+  try {
+    const roundImplementation = new ethers.Contract(
+      roundId,
+      roundImplementationContract.abi,
+      signerOrProvider
+    );
+
+    // Finalize round
+    const tx = await roundImplementation.setReadyForPayout();
+    const receipt = await tx.wait();
+
+    console.log("✅ Set ready for payout transaction hash: ", tx.hash);
+
+    const blockNumber = receipt.blockNumber;
+    return {
+      transactionBlockNumber: blockNumber,
+    };
+  } catch (error) {
+    console.error("finalizeRoundToContract", error);
+    throw new Error("Unable to set round ready for payout");
+  }
+}
+
 /**
  * Fetch finalized matching distribution
  * @param roundId - the ID of a specific round for detail

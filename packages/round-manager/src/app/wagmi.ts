@@ -85,7 +85,7 @@ export const { chains, provider, webSocketProvider } = configureChains(
   allChains,
   [
     infuraProvider({ apiKey: process.env.REACT_APP_INFURA_ID }),
-    alchemyProvider({ apiKey: process.env.REACT_APP_ALCHEMY_API_KEY}),
+    alchemyProvider({ apiKey: process.env.REACT_APP_ALCHEMY_API_KEY }),
     publicProvider(),
   ]
 );

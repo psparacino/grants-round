@@ -1,5 +1,7 @@
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { ApplicationMetadata, InputType, IPFSObject, Program } from "./types";
+import { QFDistribution } from "./api";
+import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 
 export enum ChainId {
   MAINNET = 1,
@@ -447,4 +449,15 @@ export const getUTCTime = (date: Date): string => {
   ];
 
   return utcTime.join(":") + " UTC";
+};
+
+export const generateStandardMerkleTree = (distribution: QFDistribution[]) => {
+  console.log("Generating merkle tree for distribution: ", distribution);
+  const values = distribution.map((item) => [
+    item.projectPayoutAddress,
+    BigNumber.from(item.matchAmountInToken.toString()),
+    ethers.utils.formatBytes32String(item.projectId),
+  ]);
+
+  return StandardMerkleTree.of(values, ["address", "uint256", "bytes32"]);
 };

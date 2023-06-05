@@ -74,7 +74,7 @@ export const programFactoryContract = (
       break;
     }
     case ChainId.POLYGON_MUMBAI_CHAIN_ID: {
-      address = "0xbd2a2C4f3841f39e1112622596A1AE325B26Fe54";
+      address = "0xcc19871C2DaFF31dC1A7add1240B6819A8F4E544";
       break;
     }
     case ChainId.GOERLI_CHAIN_ID:
@@ -123,7 +123,7 @@ export const roundFactoryContract = (
       break;
     }
     case ChainId.POLYGON_MUMBAI_CHAIN_ID: {
-      address = "0x36Ca0662fd2af176B10CEA7f2aBa0BB299B6E6c5";
+      address = "0x6bef29C694Ca94c0640f0D01D5EE5c17C7eAba94";
       break;
     }
     case ChainId.GOERLI_CHAIN_ID:
@@ -218,7 +218,7 @@ export const qfRelayStrategyFactoryContract = (
       break;
     }
     case ChainId.POLYGON_MUMBAI_CHAIN_ID: {
-      address = "0x0637876724150495d2B4F73A18EA87bCb78E63DB";
+      address = "0xBcC6f8AeCCd46b941A3A0BFd5eC3E0155Bcb78ba";
       break;
     }
     case ChainId.GOERLI_CHAIN_ID:
