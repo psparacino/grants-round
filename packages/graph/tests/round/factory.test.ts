@@ -110,17 +110,6 @@ describe("handleRoundCreated", () => {
 
     programEntity.save();
 
-    // Create QuadraticTippingStats entity
-    let quadraticTippingEntity = new QuadraticTipping(roundContractAddress.toHex());
-    quadraticTippingEntity.id = roundContractAddress.toHex();
-    quadraticTippingEntity.round = roundContractAddress.toHex();
-    quadraticTippingEntity.matchAmount = new BigInt(0);
-    quadraticTippingEntity.votes = [];
-    quadraticTippingEntity.distributions = [];
-    quadraticTippingEntity.batchPayoutCompleted = false;
-    quadraticTippingEntity.readyForPayout = false;
-    quadraticTippingEntity.save();
-
     // mock global variables
     createMockedFunction(
       roundContractAddress,

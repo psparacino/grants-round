@@ -5,6 +5,7 @@ import {
   Round,
   VotingStrategy,
   QuadraticTipping,
+  QuadraticTippingDistribution
 } from "../../generated/schema";
 import { RoundImplementation } from "../../generated/templates";
 import { RoundImplementation as RoundImplementationContract } from "../../generated/templates/RoundImplementation/RoundImplementation";
@@ -106,6 +107,18 @@ export function handleRoundCreated(event: RoundCreatedEvent): void {
   quadraticTipping.batchPayoutCompleted = false;
   quadraticTipping.readyForPayout = false;
   quadraticTipping.save();
+
+  let quadraticTippingDistribution : QuadraticTippingDistribution = new QuadraticTippingDistribution(
+    roundContractAddress.toHex()
+  );
+  quadraticTippingDistribution.id = round.id;
+  quadraticTippingDistribution.round = round.id;
+  quadraticTippingDistribution.address = "";
+  quadraticTippingDistribution.amount = BigInt.fromI32(0);
+  quadraticTippingDistribution.projectId = "";
+  quadraticTippingDistribution.token = "";
+  quadraticTippingDistribution.save();
+  
 
 
   // set timestamp

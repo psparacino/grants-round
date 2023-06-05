@@ -22,7 +22,7 @@ import { QuadraticTipping } from "../../generated/schema";
 let newEscrowFundsToContractEvent: EscrowFundsToPayoutContractEvent;
 
 const roundContractAddress: Address = Address.fromString(
-  "0xa16081f360e3847006db660bae1c6d1b2e17ec2a"
+  "0x61ca4EB8a3aACA536c27172c96a453a5a7e47C55"
 );
 
 function createNewEscrowFundsToContractEvent(): EscrowFundsToPayoutContractEvent {
@@ -35,6 +35,9 @@ function createNewEscrowFundsToContractEvent(): EscrowFundsToPayoutContractEvent
 
   const newEscrowFundsToContractEvent =
     changetype<EscrowFundsToPayoutContractEvent>(newMockEvent());
+
+  newEscrowFundsToContractEvent.address = roundContractAddress;
+
   newEscrowFundsToContractEvent.parameters.push(matchAmountParam);
 
   return newEscrowFundsToContractEvent;
@@ -42,10 +45,10 @@ function createNewEscrowFundsToContractEvent(): EscrowFundsToPayoutContractEvent
 
 describe("Match Amount Tests in Round Implementation", () => {
   beforeEach(() => {
-    log.info("roundContractAddress: {}", [roundContractAddress.toHex()]);
     let quadraticTippingEntity = new QuadraticTipping(
       roundContractAddress.toHex()
     );
+
     quadraticTippingEntity.id = roundContractAddress.toHex();
     quadraticTippingEntity.round = roundContractAddress.toHex();
     quadraticTippingEntity.matchAmount = BigInt.fromString("0");
@@ -65,12 +68,6 @@ describe("Match Amount Tests in Round Implementation", () => {
   test("match amount set when escrow funds are sent to round contract", () => {
     handleEscrowFundsToPayoutContract(newEscrowFundsToContractEvent);
 
-    const postHandleQuadraticTipping = QuadraticTipping.load(
-      roundContractAddress.toHex()
-    );
-    log.info("postHandleQuadraticTipping: {}", [
-      postHandleQuadraticTipping!.matchAmount.toString(),
-    ]);
     assert.fieldEquals(
       "QuadraticTipping",
       roundContractAddress.toHex(),
@@ -89,6 +86,8 @@ describe("Match Amount Tests in Round Implementation", () => {
       newMockEvent()
     );
     newMatchAmountUpdatedEvent.parameters.push(matchAmountParam);
+
+    newMatchAmountUpdatedEvent.address = roundContractAddress;
 
     handleMatchAmountUpdated(newMatchAmountUpdatedEvent);
 

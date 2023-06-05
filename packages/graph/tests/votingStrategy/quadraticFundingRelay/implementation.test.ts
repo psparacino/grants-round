@@ -109,9 +109,10 @@ describe("handleVote", () => {
 
     // create QuadradicTippingDistribution entity
     const quadraticTippingDistributionEntity = new QuadraticTippingDistribution(
-      "quadraticTippingDistribution"
+      roundAddress.toHex()
     );
     quadraticTippingDistributionEntity.id = roundAddress.toHex();
+    quadraticTippingDistributionEntity.round = roundAddress.toHex();
     quadraticTippingDistributionEntity.address = "";
     quadraticTippingDistributionEntity.amount = new BigInt(0);
     quadraticTippingDistributionEntity.projectId = "";
@@ -120,7 +121,7 @@ describe("handleVote", () => {
 
     // create QuadraticTipping entity
     const quadraticTippingEntity = new QuadraticTipping(
-      "quadraticTippingStats"
+      roundAddress.toHex()
     );
     quadraticTippingEntity.id = roundAddress.toHex();
     quadraticTippingEntity.round = roundAddress.toHex();

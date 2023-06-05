@@ -145,6 +145,7 @@ type QuadraticTipping @entity {
 
 type QuadraticTippingDistribution @entity {
   id: ID!
+  round: Round!
   address: String!
   amount: BigInt!
   projectId: String!
