@@ -47,6 +47,6 @@ router.get(
 );
 router.get("/data/match/round/:chainId/:roundId", getRoundMatchDataHandler);
 
-router.post("/update/defender-sentinel/:votingStrategyAddress", updateDefenderSentinelHandler);
+router.post("/update/add-defender-sentinel-address/:votingStrategyAddress", updateDefenderSentinelHandler);
 
 export default router;

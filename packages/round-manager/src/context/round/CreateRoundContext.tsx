@@ -11,6 +11,7 @@ import {deployQFVotingContract} from "../../features/api/votingStrategy/qfVoting
 import {deployQFRelayContract} from "../../features/api/votingStrategy/qfRelayStrategy";
 import {deployMerklePayoutStrategyContract} from "../../features/api/payoutStrategy/merklePayoutStrategy";
 import {BigNumberish} from "ethers";
+import {updateDefenderSentinel} from "../../features/api/defender";
 
 type SetStatusFn = React.Dispatch<SetStateAction<ProgressStatus>>;
 
@@ -27,6 +28,8 @@ export interface CreateRoundState {
   setRoundTransferFundsStatus: SetStatusFn;
   roundUpdateMatchAmountStatus: ProgressStatus;
   setRoundUpdateMatchAmountStatus: SetStatusFn;
+  defenderUpdateSentinelStatus: ProgressStatus;
+  setDefenderUpdateSentinelStatus: SetStatusFn;
   indexingStatus: ProgressStatus;
   setIndexingStatus: SetStatusFn;
 }
@@ -66,6 +69,10 @@ export const initialCreateRoundState: CreateRoundState = {
   setRoundUpdateMatchAmountStatus: () => {
     /* provided in CreateRoundProvider */
   },
+  defenderUpdateSentinelStatus: ProgressStatus.NOT_STARTED,
+  setDefenderUpdateSentinelStatus: () => {
+    /* provided in CreateRoundProvider */
+  },
   indexingStatus: ProgressStatus.NOT_STARTED,
   setIndexingStatus: () => {
     /* provided in CreateRoundProvider */
@@ -94,6 +101,7 @@ export const CreateRoundProvider = ({
     initialCreateRoundState.roundTransferFundsStatus
   );
   const [roundUpdateMatchAmountStatus, setRoundUpdateMatchAmountStatus] = useState(initialCreateRoundState.roundUpdateMatchAmountStatus);
+  const [defenderUpdateSentinelStatus, setDefenderUpdateSentinelStatus] = useState(initialCreateRoundState.defenderUpdateSentinelStatus);
   const [indexingStatus, setIndexingStatus] = useState(
     initialCreateRoundState.indexingStatus
   );
@@ -111,6 +119,8 @@ export const CreateRoundProvider = ({
     setRoundTransferFundsStatus,
     roundUpdateMatchAmountStatus,
     setRoundUpdateMatchAmountStatus,
+    defenderUpdateSentinelStatus,
+    setDefenderUpdateSentinelStatus,
     indexingStatus,
     setIndexingStatus,
   };
@@ -140,6 +150,7 @@ const _createRound = async ({
     setRoundContractDeploymentStatus,
     setRoundTransferFundsStatus,
     setRoundUpdateMatchAmountStatus,
+    setDefenderUpdateSentinelStatus,
     setIndexingStatus,
   } = context;
   const {
@@ -208,6 +219,11 @@ const _createRound = async ({
       signerOrProvider
     );
 
+    await handleUpdateDefenderSentinel(
+      setDefenderUpdateSentinelStatus,
+      votingContractAddress,
+    );
+
     await waitForSubgraphToUpdate(
       setIndexingStatus,
       signerOrProvider,
@@ -265,6 +281,7 @@ export const useCreateRound = () => {
     roundContractDeploymentStatus: context.roundContractDeploymentStatus,
     roundTransferFundsStatus: context.roundTransferFundsStatus,
     roundUpdateMatchAmountStatus: context.roundUpdateMatchAmountStatus,
+    defenderUpdateSentinelStatus: context.defenderUpdateSentinelStatus,
     indexingStatus: context.indexingStatus,
   };
 };
@@ -406,6 +423,23 @@ async function handleUpdateRoundMatchAmount(
   } catch (error) {
     console.error("updateMatchAmount", error);
     setDeploymentStatus(ProgressStatus.IS_ERROR);
+    throw error;
+  }
+}
+
+async function handleUpdateDefenderSentinel(
+  setDefenderUpdateSentinelStatus: SetStatusFn,
+  votingContractAddress: string,
+) {
+  try {
+    setDefenderUpdateSentinelStatus(ProgressStatus.IN_PROGRESS);
+    const success = await updateDefenderSentinel(votingContractAddress);
+
+    setDefenderUpdateSentinelStatus(ProgressStatus.IS_SUCCESS);
+    return success;
+  } catch (error) {
+    console.error("updateDefenderSentinel", error);
+    setDefenderUpdateSentinelStatus(ProgressStatus.IS_ERROR);
     throw error;
   }
 }
