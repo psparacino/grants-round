@@ -3,6 +3,8 @@ import {
   ProjectsMetaPtrUpdated as ProjectsMetaPtrUpdatedEvent,
   RoleGranted as RoleGrantedEvent,
   RoleRevoked as RoleRevokedEvent,
+  EscrowFundsToPayoutContract as EscrowFundsToPayoutContractEvent,
+  MatchAmountUpdated as MatchAmountUpdatedEvent,
 } from "../../generated/templates/RoundImplementation/RoundImplementation";
 
 import {
@@ -11,6 +13,7 @@ import {
   RoundAccount,
   RoundRole,
   RoundProject,
+  QuadraticTipping,
 } from "../../generated/schema";
 import { fetchMetaPtrData, generateID, updateMetaPtr } from "../utils";
 import { JSONValueKind, log, store } from "@graphprotocol/graph-ts";
@@ -85,7 +88,7 @@ export function handleRoleRevoked(event: RoleRevokedEvent): void {
   let account = RoundAccount.load(accountId);
   if (account) {
     store.remove("ProgramAccount", account.id);
-   
+
     // update timestamp
     round.updatedAt = event.block.timestamp;
     round.save();
@@ -227,3 +230,34 @@ export function handleProjectsMetaPtrUpdated(
     if (isProjectUpdated) project.save();
   }
 }
+
+export function handleEscrowFundsToPayoutContract(
+  event: EscrowFundsToPayoutContractEvent
+): void {
+  const _round = event.address.toHex();
+
+  const _matchAmount = event.params.matchAmount;
+
+  let quadraticTipping = QuadraticTipping.load(_round);
+  if (quadraticTipping == null) {
+    log.warning("quadraticTipping is null", []);
+  }
+  let matchAmount = quadraticTipping!.matchAmount;
+  matchAmount = _matchAmount;
+  quadraticTipping!.matchAmount = matchAmount;
+  quadraticTipping!.save();
+}
+
+export const handleMatchAmountUpdated = (
+  event: MatchAmountUpdatedEvent
+): void => {
+  const _round = event.address.toHex();
+  const _newAmount = event.params.newAmount;
+
+  let quadraticTipping = QuadraticTipping.load(_round);
+
+  let matchAmount = quadraticTipping!.matchAmount;
+  matchAmount = _newAmount;
+  quadraticTipping!.matchAmount = matchAmount;
+  quadraticTipping!.save();
+};

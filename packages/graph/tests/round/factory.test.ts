@@ -111,7 +111,7 @@ describe("handleRoundCreated", () => {
     programEntity.save();
 
     // Create QuadraticTippingStats entity
-    let quadraticTippingEntity = new QuadraticTipping("quadraticTipping");
+    let quadraticTippingEntity = new QuadraticTipping(roundContractAddress.toHex());
     quadraticTippingEntity.id = roundContractAddress.toHex();
     quadraticTippingEntity.round = roundContractAddress.toHex();
     quadraticTippingEntity.matchAmount = new BigInt(0);
