@@ -114,6 +114,7 @@ export function RoundApplicationForm(props: {
     votingContractDeploymentStatus,
     payoutContractDeploymentStatus,
     roundContractDeploymentStatus,
+    roundUpdateMatchAmountStatus,
     indexingStatus,
   } = useCreateRound();
 
@@ -229,6 +230,11 @@ export function RoundApplicationForm(props: {
       name: "Deploying",
       description: "The round contract is being deployed.",
       status: roundContractDeploymentStatus,
+    },
+    {
+      name: "Match Amount",
+      description: "Updating the round match amount",
+      status: roundUpdateMatchAmountStatus,
     },
     {
       name: "Indexing",

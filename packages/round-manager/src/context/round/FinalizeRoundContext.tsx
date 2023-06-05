@@ -15,13 +15,13 @@ import { useWallet } from "../../features/common/Auth";
 import { saveToIPFS } from "../../features/api/ipfs";
 import {
   fetchMatchingDistribution,
-  finalizeRoundToContract,
+  finalizeRoundToContract, setRoundReadyForPayout,
 } from "../../features/api/round";
 import { datadogLogs } from "@datadog/browser-logs";
 import { ethers } from "ethers";
 import { QFDistribution } from "../../features/api/api";
 import { generateStandardMerkleTree } from "../../features/api/utils";
-import { useQuery } from "wagmi";
+import {roundImplementationContract} from "../../features/api/contracts";
 
 export interface FinalizeRoundState {
   IPFSCurrentStatus: ProgressStatus;
@@ -146,6 +146,20 @@ const _finalizeRound = async ({
       throw new Error("matchingJSON is undefined");
     }
 
+    const roundImplementation = new ethers.Contract(
+      roundId,
+      roundImplementationContract.abi,
+      signerOrProvider
+    );
+
+    const payoutStrategyAddress = await roundImplementation.payoutStrategy();
+
+    if (!payoutStrategyAddress) {
+      throw new Error("payoutStrategyAddress is undefined");
+    }
+
+    console.log('payoutStrategyAddress', payoutStrategyAddress);
+
     const tree = generateStandardMerkleTree(distribution);
 
     console.log(tree.dump());
@@ -161,12 +175,21 @@ const _finalizeRound = async ({
     console.log("root", merkleRoot);
     const transactionBlockNumber = await finalizeToContract(
       dispatch,
-      roundId,
+      payoutStrategyAddress,
       merkleRoot,
       distributionMetaPtr,
       signerOrProvider
     );
+
     console.log("transactionBlockNumber: ", transactionBlockNumber);
+
+    const setReadyForPayoutStatus = await setReadyForPayout(
+      dispatch,
+      roundId,
+      signerOrProvider
+    );
+
+    console.log('setReadyForPayoutStatus', setReadyForPayoutStatus);
   } catch (error) {
     datadogLogs.logger.error(`error: _finalizeRound - ${error}`);
     console.error("_finalizeRound: ", error);
@@ -244,7 +267,7 @@ async function storeDocument(
 
 async function finalizeToContract(
   dispatch: (action: Action) => void,
-  roundId: string,
+  payoutStrategyAddress: string,
   merkleRoot: string,
   distributionMetaPtr: { protocol: number; pointer: string },
   signerOrProvider: Web3Instance["provider"]
@@ -265,7 +288,7 @@ async function finalizeToContract(
     console.log("encodedDistribution", encodedDistribution);
 
     const { transactionBlockNumber } = await finalizeRoundToContract({
-      roundId,
+      payoutStrategyAddress,
       encodedDistribution,
       // @ts-expect-error TODO: resolve this situation around signers and providers
       signerOrProvider: signerOrProvider,
@@ -291,7 +314,8 @@ async function finalizeToContract(
 
 async function setReadyForPayout(
   dispatch: (action: Action) => void,
-  roundId: string
+  roundId: string,
+  signerOrProvider: Web3Instance["provider"]
 ) {
   try {
     dispatch({
@@ -301,18 +325,18 @@ async function setReadyForPayout(
       },
     });
 
-    await setReadyForPayout(dispatch, roundId);
+    await setRoundReadyForPayout({ roundId, signerOrProvider });
 
     dispatch({
       type: ActionType.SET_READY_FOR_PAYOUT_STATUS,
       payload: { setReadyForPayoutStatus: ProgressStatus.IS_SUCCESS },
     });
   } catch (error) {
-    datadogLogs.logger.error(`error: finalizeRoundToContract - ${error}`);
-    console.error(`finalizeRoundToContract`, error);
+    datadogLogs.logger.error(`error: setReadyForPayout - ${error}`);
+    console.error(`setReadyForPayout`, error);
     dispatch({
-      type: ActionType.SET_DEPLOYMENT_STATUS,
-      payload: { finalizeRoundToContractStatus: ProgressStatus.IS_ERROR },
+      type: ActionType.SET_READY_FOR_PAYOUT_STATUS,
+      payload: { setReadyForPayoutStatus: ProgressStatus.IS_ERROR },
     });
     throw error;
   }

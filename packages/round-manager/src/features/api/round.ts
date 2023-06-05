@@ -3,7 +3,7 @@ import {
   ApprovedProject,
   MatchingStatsData,
   MetadataPointer,
-  Round,
+  Round, Web3Instance,
 } from "./types";
 import { fetchFromIPFS, graphql_fetch } from "./utils";
 import {
@@ -11,9 +11,10 @@ import {
   roundFactoryContract,
   roundImplementationContract,
 } from "./contracts";
-import { ethers } from "ethers";
+import {BigNumberish, ethers} from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 import { Signer } from "@ethersproject/abstract-signer";
+import merklePayoutStrategy from "./abi/payoutStrategy/merklePayoutStrategy";
 
 /**
  * Fetch a round by ID
@@ -221,7 +222,7 @@ export async function listRounds(
 export async function deployRoundContract(
   round: Round,
   signerOrProvider: Signer
-): Promise<{ transactionBlockNumber: number }> {
+): Promise<{ transactionBlockNumber: number, roundAddress?: string }> {
   try {
     const chainId = await signerOrProvider.getChainId();
 
@@ -293,6 +294,31 @@ export async function deployRoundContract(
     const blockNumber = receipt.blockNumber;
     return {
       transactionBlockNumber: blockNumber,
+      roundAddress,
+    };
+  } catch (error) {
+    console.error("deployRoundContract", error);
+    throw new Error("Unable to create round");
+  }
+}
+
+export const updateRoundMatchAmount = async (roundId: string, amount: BigNumberish, signerOrProvider: Signer) => {
+  try {
+    const roundImplementation = new ethers.Contract(
+      roundId,
+      roundImplementationContract.abi,
+      signerOrProvider
+    );
+
+    // Finalize round
+    const tx = await roundImplementation.updateMatchAmount(
+      amount
+    );
+    const receipt = await tx.wait();
+    console.log("✅ Update match amount transaction hash: ", tx.hash);
+
+    return {
+      transactionBlockNumber: receipt.blockNumber,
     };
   } catch (error) {
     console.error("deployRoundContract", error);
@@ -438,30 +464,31 @@ export async function getProjectOwners(
 }
 
 interface FinalizeRoundToContractProps {
-  roundId: string;
+  payoutStrategyAddress: string;
   encodedDistribution: string;
   signerOrProvider: Signer;
 }
 
 export async function finalizeRoundToContract({
-  roundId,
+  payoutStrategyAddress,
   encodedDistribution,
   signerOrProvider,
 }: FinalizeRoundToContractProps) {
   try {
-    const roundImplementation = new ethers.Contract(
-      roundId,
-      roundImplementationContract.abi,
+    const merklePayoutImplementation = new ethers.Contract(
+      payoutStrategyAddress,
+      merklePayoutStrategy,
       signerOrProvider
     );
 
     // Finalize round
-    const tx = await roundImplementation.updateDistribution(
+    const tx = await merklePayoutImplementation.updateDistribution(
       encodedDistribution
     );
     const receipt = await tx.wait();
 
-    console.log("✅ Transaction hash: ", tx.hash);
+    console.log("✅ Update distribution transaction hash: ", tx.hash);
+
     const blockNumber = receipt.blockNumber;
     return {
       transactionBlockNumber: blockNumber,
@@ -475,16 +502,19 @@ export async function finalizeRoundToContract({
 export async function setRoundReadyForPayout({
   roundId,
   signerOrProvider,
-}: FinalizeRoundToContractProps) {
+}: {
+  roundId: string;
+  signerOrProvider: Web3Instance["provider"],
+}) {
   try {
     const roundImplementation = new ethers.Contract(
       roundId,
-      roundImplementationContract.abi,
+      merklePayoutStrategy,
       signerOrProvider
     );
 
     // Finalize round
-    const tx = await roundImplementation.setReadyForPayout();
+    const tx = await roundImplementation.setReadyForPayout({ value: 100 });
     const receipt = await tx.wait();
 
     console.log("✅ Set ready for payout transaction hash: ", tx.hash);
