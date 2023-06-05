@@ -15,6 +15,7 @@ import {BigNumberish, ethers} from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 import { Signer } from "@ethersproject/abstract-signer";
 import merklePayoutStrategy from "./abi/payoutStrategy/merklePayoutStrategy";
+import erc20Abi from "./abi/erc20";
 
 /**
  * Fetch a round by ID
@@ -325,6 +326,31 @@ export const updateRoundMatchAmount = async (roundId: string, amount: BigNumberi
     throw new Error("Unable to create round");
   }
 }
+
+export const transferFundsToRound = async (
+  amount: BigNumberish,
+    roundId: string,
+    tokenAddress: string,
+    signerOrProvider: Signer
+) => {
+  try {
+    const tokenContract = new ethers.Contract(
+      tokenAddress,
+      erc20Abi,
+      signerOrProvider
+    );
+
+    const tx = await tokenContract.transfer(roundId, amount);
+    const receipt = await tx.wait();
+    console.log("✅ Update match amount transaction hash: ", tx.hash);
+    return {
+      transactionBlockNumber: receipt.blockNumber,
+    };
+  } catch (error) {
+    console.error("transferFundsError", error);
+    throw new Error("Unable to transfer funds to round");
+  }
+};
 
 /**
  * Shape of subgraph response of Round

@@ -2,7 +2,7 @@ import {ProgressStatus, Round, StorageProtocolID, VotingStrategy,} from "../../f
 import React, {createContext, SetStateAction, useContext, useState,} from "react";
 import {saveToIPFS} from "../../features/api/ipfs";
 import {useWallet} from "../../features/common/Auth";
-import {deployRoundContract, updateRoundMatchAmount} from "../../features/api/round";
+import {deployRoundContract, transferFundsToRound, updateRoundMatchAmount} from "../../features/api/round";
 import {waitForSubgraphSyncTo} from "../../features/api/subgraph";
 import {SchemaQuestion} from "../../features/api/utils";
 import {datadogLogs} from "@datadog/browser-logs";
@@ -23,6 +23,8 @@ export interface CreateRoundState {
   setPayoutContractDeploymentStatus: SetStatusFn;
   roundContractDeploymentStatus: ProgressStatus;
   setRoundContractDeploymentStatus: SetStatusFn;
+  roundTransferFundsStatus: ProgressStatus;
+  setRoundTransferFundsStatus: SetStatusFn;
   roundUpdateMatchAmountStatus: ProgressStatus;
   setRoundUpdateMatchAmountStatus: SetStatusFn;
   indexingStatus: ProgressStatus;
@@ -56,6 +58,10 @@ export const initialCreateRoundState: CreateRoundState = {
   setRoundContractDeploymentStatus: () => {
     /* provided in CreateRoundProvider */
   },
+  roundTransferFundsStatus: ProgressStatus.NOT_STARTED,
+  setRoundTransferFundsStatus: () => {
+    /* provided in CreateRoundProvider */
+  },
   roundUpdateMatchAmountStatus: ProgressStatus.NOT_STARTED,
   setRoundUpdateMatchAmountStatus: () => {
     /* provided in CreateRoundProvider */
@@ -84,6 +90,9 @@ export const CreateRoundProvider = ({
     useState(initialCreateRoundState.payoutContractDeploymentStatus);
   const [roundContractDeploymentStatus, setRoundContractDeploymentStatus] =
     useState(initialCreateRoundState.roundContractDeploymentStatus);
+  const [roundTransferFundsStatus, setRoundTransferFundsStatus] = useState(
+    initialCreateRoundState.roundTransferFundsStatus
+  );
   const [roundUpdateMatchAmountStatus, setRoundUpdateMatchAmountStatus] = useState(initialCreateRoundState.roundUpdateMatchAmountStatus);
   const [indexingStatus, setIndexingStatus] = useState(
     initialCreateRoundState.indexingStatus
@@ -98,6 +107,8 @@ export const CreateRoundProvider = ({
     setPayoutContractDeploymentStatus,
     roundContractDeploymentStatus,
     setRoundContractDeploymentStatus,
+    roundTransferFundsStatus,
+    setRoundTransferFundsStatus,
     roundUpdateMatchAmountStatus,
     setRoundUpdateMatchAmountStatus,
     indexingStatus,
@@ -127,6 +138,7 @@ const _createRound = async ({
     setVotingContractDeploymentStatus,
     setPayoutContractDeploymentStatus,
     setRoundContractDeploymentStatus,
+    setRoundTransferFundsStatus,
     setRoundUpdateMatchAmountStatus,
     setIndexingStatus,
   } = context;
@@ -181,7 +193,20 @@ const _createRound = async ({
       signerOrProvider
     );
 
-    await handleUpdateRoundMatchAmount(setRoundUpdateMatchAmountStatus, roundAddress!, 0, signerOrProvider);
+    await handleTransferFundsToRound(
+      setRoundTransferFundsStatus,
+      roundMetadataWithProgramContractAddress?.matchingFunds?.matchingFundsAvailable || 0,
+      roundAddress!,
+      round.token,
+      signerOrProvider
+    );
+
+    await handleUpdateRoundMatchAmount(
+      setRoundUpdateMatchAmountStatus,
+      roundAddress!,
+      roundMetadataWithProgramContractAddress?.matchingFunds?.matchingFundsAvailable || 0,
+      signerOrProvider
+    );
 
     await waitForSubgraphToUpdate(
       setIndexingStatus,
@@ -208,6 +233,7 @@ export const useCreateRound = () => {
     setVotingContractDeploymentStatus,
     setPayoutContractDeploymentStatus,
     setRoundContractDeploymentStatus,
+    setRoundTransferFundsStatus,
     setRoundUpdateMatchAmountStatus,
     setIndexingStatus,
   } = context;
@@ -219,6 +245,7 @@ export const useCreateRound = () => {
       setVotingContractDeploymentStatus,
       setPayoutContractDeploymentStatus,
       setRoundContractDeploymentStatus,
+      setRoundTransferFundsStatus,
       setRoundUpdateMatchAmountStatus,
       setIndexingStatus
     );
@@ -236,6 +263,7 @@ export const useCreateRound = () => {
     votingContractDeploymentStatus: context.votingContractDeploymentStatus,
     payoutContractDeploymentStatus: context.payoutContractDeploymentStatus,
     roundContractDeploymentStatus: context.roundContractDeploymentStatus,
+    roundTransferFundsStatus: context.roundTransferFundsStatus,
     roundUpdateMatchAmountStatus: context.roundUpdateMatchAmountStatus,
     indexingStatus: context.indexingStatus,
   };
@@ -246,6 +274,7 @@ function resetToInitialState(
   setVotingDeployingStatus: SetStatusFn,
   setPayoutDeployingStatus: SetStatusFn,
   setDeployingStatus: SetStatusFn,
+  setRoundTransferFundsStatus: SetStatusFn,
   setRoundUpdateMatchStatus: SetStatusFn,
   setIndexingStatus: SetStatusFn
 ): void {
@@ -257,6 +286,7 @@ function resetToInitialState(
     initialCreateRoundState.payoutContractDeploymentStatus
   );
   setDeployingStatus(initialCreateRoundState.roundContractDeploymentStatus);
+  setRoundTransferFundsStatus(initialCreateRoundState.roundTransferFundsStatus);
   setRoundUpdateMatchStatus(initialCreateRoundState.roundUpdateMatchAmountStatus);
   setIndexingStatus(initialCreateRoundState.indexingStatus);
 }
@@ -375,6 +405,31 @@ async function handleUpdateRoundMatchAmount(
     return transactionBlockNumber;
   } catch (error) {
     console.error("updateMatchAmount", error);
+    setDeploymentStatus(ProgressStatus.IS_ERROR);
+    throw error;
+  }
+}
+
+async function handleTransferFundsToRound(
+  setDeploymentStatus: SetStatusFn,
+  amount: BigNumberish,
+  roundId: string,
+  tokenAddress: string,
+  signerOrProvider: Signer
+) {
+  try {
+    setDeploymentStatus(ProgressStatus.IN_PROGRESS);
+    const { transactionBlockNumber } = await transferFundsToRound(
+      amount,
+      roundId,
+      tokenAddress,
+      signerOrProvider
+    );
+
+    setDeploymentStatus(ProgressStatus.IS_SUCCESS);
+    return transactionBlockNumber;
+  } catch (error) {
+    console.error("handleTransferFundsToRound", error);
     setDeploymentStatus(ProgressStatus.IS_ERROR);
     throw error;
   }

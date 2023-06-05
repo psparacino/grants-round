@@ -7,6 +7,7 @@ import qfVotingStrategyFactory from "./votingStrategy/qfVotingStrategyFactory";
 import qfRelayStrategyFactory from "./votingStrategy/qfRelayStrategyFactory";
 import merklePayoutStrategy from "./payoutStrategy/merklePayoutStrategy";
 import merklePayoutStrategyFactory from "./payoutStrategy/merklePayoutStrategyFactory";
+import erc20Abi from "./erc20";
 
 const abi = {
   // External
@@ -28,7 +29,9 @@ const abi = {
 
   // PayoutStrategy
   merklePayoutStrategy,
-  merklePayoutStrategyFactory
+  merklePayoutStrategyFactory,
+
+  erc20Abi,
 };
 
 export default abi;

@@ -287,13 +287,15 @@ function FinalizeRound(props: {
     finalizeRound,
     IPFSCurrentStatus,
     finalizeRoundToContractStatus,
-    setReadyForPayoutStatus,
+    readyForPayoutStatus
+
   } = useFinalizeRound();
 
   useEffect(() => {
     if (
       IPFSCurrentStatus === ProgressStatus.IS_SUCCESS &&
-      finalizeRoundToContractStatus === ProgressStatus.IS_SUCCESS
+      finalizeRoundToContractStatus === ProgressStatus.IS_SUCCESS &&
+      readyForPayoutStatus === ProgressStatus.IS_SUCCESS
     ) {
       // redirectToFinalizedRoundStats(navigate, 2000);
       console.log("success");
@@ -341,13 +343,13 @@ function FinalizeRound(props: {
     {
       name: "Set ready for payout",
       description: "The contract is being set ready for payout",
-      status: setReadyForPayoutStatus,
+      status: readyForPayoutStatus,
     },
     {
       name: "Redirecting",
       description: "Just another moment while we finish things up.",
       status:
-        finalizeRoundToContractStatus === ProgressStatus.IS_SUCCESS
+        readyForPayoutStatus === ProgressStatus.IS_SUCCESS
           ? ProgressStatus.IN_PROGRESS
           : ProgressStatus.NOT_STARTED,
     },
@@ -366,7 +368,8 @@ function FinalizeRound(props: {
           />
         </div>
       )}
-      {!props.useContractData && (
+      {/*{!props.useContractData && (*/}
+      {(
         <div className="w-full pt-12">
           <span className="font-bold" data-testid="finalize-round">
             Finalize Round

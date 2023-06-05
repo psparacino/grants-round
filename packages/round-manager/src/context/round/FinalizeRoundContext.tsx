@@ -26,7 +26,7 @@ import {roundImplementationContract} from "../../features/api/contracts";
 export interface FinalizeRoundState {
   IPFSCurrentStatus: ProgressStatus;
   finalizeRoundToContractStatus: ProgressStatus;
-  setReadForPayoutStatus: ProgressStatus;
+  readyForPayoutStatus: ProgressStatus;
 }
 
 interface _finalizeRoundParams {
@@ -80,7 +80,7 @@ enum ActionType {
 export const initialFinalizeRoundState: FinalizeRoundState = {
   IPFSCurrentStatus: ProgressStatus.NOT_STARTED,
   finalizeRoundToContractStatus: ProgressStatus.NOT_STARTED,
-  setReadForPayoutStatus: ProgressStatus.NOT_STARTED,
+  readyForPayoutStatus: ProgressStatus.NOT_STARTED,
 };
 
 export const FinalizeRoundContext = createContext<
@@ -225,7 +225,7 @@ export const useFinalizeRound = () => {
     finalizeRound,
     IPFSCurrentStatus: context.state.IPFSCurrentStatus,
     finalizeRoundToContractStatus: context.state.finalizeRoundToContractStatus,
-    setReadyForPayoutStatus: context.state.setReadForPayoutStatus,
+    readyForPayoutStatus: context.state.readyForPayoutStatus
   };
 };
 
