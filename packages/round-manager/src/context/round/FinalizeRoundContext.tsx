@@ -15,18 +15,24 @@ import { useWallet } from "../../features/common/Auth";
 import { saveToIPFS } from "../../features/api/ipfs";
 import {
   fetchMatchingDistribution,
-  finalizeRoundToContract, setRoundReadyForPayout,
+  setRoundReadyForPayout,
 } from "../../features/api/round";
 import { datadogLogs } from "@datadog/browser-logs";
 import { ethers } from "ethers";
 import { QFDistribution } from "../../features/api/api";
 import { generateStandardMerkleTree } from "../../features/api/utils";
-import {roundImplementationContract} from "../../features/api/contracts";
+import { roundImplementationContract } from "../../features/api/contracts";
+import { Web3Provider } from "@ethersproject/providers";
+import {
+  finalizeRoundToContract,
+  handlePayout,
+} from "../../features/api/payoutStrategy/merklePayoutStrategy";
 
 export interface FinalizeRoundState {
   IPFSCurrentStatus: ProgressStatus;
   finalizeRoundToContractStatus: ProgressStatus;
   readyForPayoutStatus: ProgressStatus;
+  payoutStatus: ProgressStatus;
 }
 
 interface _finalizeRoundParams {
@@ -41,6 +47,7 @@ type Action =
   | SET_DEPLOYMENT_STATUS_ACTION
   | SET_STORING_STATUS_ACTION
   | RESET_TO_INITIAL_STATE_ACTION
+  | SET_PAYOUT_STATUS_ACTION
   | SET_READY_FOR_PAYOUT_STATUS;
 
 type SET_STORING_STATUS_ACTION = {
@@ -57,10 +64,17 @@ type SET_DEPLOYMENT_STATUS_ACTION = {
   };
 };
 
+type SET_PAYOUT_STATUS_ACTION = {
+  type: ActionType.SET_PAYOUT_STATUS;
+  payload: {
+    payoutStatus: ProgressStatus;
+  };
+};
+
 type SET_READY_FOR_PAYOUT_STATUS = {
   type: ActionType.SET_READY_FOR_PAYOUT_STATUS;
   payload: {
-    setReadyForPayoutStatus: ProgressStatus;
+    readyForPayoutStatus: ProgressStatus;
   };
 };
 
@@ -74,6 +88,7 @@ enum ActionType {
   SET_STORING_STATUS = "SET_STORING_STATUS",
   SET_DEPLOYMENT_STATUS = "SET_DEPLOYMENT_STATUS",
   SET_READY_FOR_PAYOUT_STATUS = "SET_READY_FOR_PAYOUT_STATUS",
+  SET_PAYOUT_STATUS = "SET_PAYOUT_STATUS",
   RESET_TO_INITIAL_STATE = "RESET_TO_INITIAL_STATE",
 }
 
@@ -81,6 +96,7 @@ export const initialFinalizeRoundState: FinalizeRoundState = {
   IPFSCurrentStatus: ProgressStatus.NOT_STARTED,
   finalizeRoundToContractStatus: ProgressStatus.NOT_STARTED,
   readyForPayoutStatus: ProgressStatus.NOT_STARTED,
+  payoutStatus: ProgressStatus.NOT_STARTED,
 };
 
 export const FinalizeRoundContext = createContext<
@@ -100,7 +116,12 @@ const finalizeRoundReducer = (state: FinalizeRoundState, action: Action) => {
     case ActionType.SET_READY_FOR_PAYOUT_STATUS:
       return {
         ...state,
-        setReadForPayoutStatus: action.payload.setReadyForPayoutStatus,
+        setReadForPayoutStatus: action.payload.readyForPayoutStatus,
+      };
+    case ActionType.SET_PAYOUT_STATUS:
+      return {
+        ...state,
+        payoutStatus: action.payload.payoutStatus,
       };
     case ActionType.RESET_TO_INITIAL_STATE: {
       return initialFinalizeRoundState;
@@ -131,6 +152,49 @@ export const FinalizeRoundProvider = ({
   );
 };
 
+async function payoutRound(
+  dispatch: Dispatch,
+  payoutStrategyAddress: string,
+  distribution: QFDistribution[],
+  signerOrProvider: Web3Provider
+) {
+  try {
+    dispatch({
+      type: ActionType.SET_PAYOUT_STATUS,
+      payload: {
+        payoutStatus: ProgressStatus.IN_PROGRESS,
+      },
+    });
+
+    const { transactionBlockNumber } = await handlePayout(
+      payoutStrategyAddress,
+      distribution,
+      signerOrProvider
+    );
+
+    dispatch({
+      type: ActionType.SET_PAYOUT_STATUS,
+      payload: {
+        payoutStatus: ProgressStatus.IS_SUCCESS,
+      },
+    });
+
+    console.log(`payoutRound TX Hash`, transactionBlockNumber);
+    return {
+      transactionBlockNumber,
+    };
+  } catch (error) {
+    datadogLogs.logger.error(`error: payoutError - ${error}`);
+    console.error(`payoutError`, error);
+    dispatch({
+      type: ActionType.SET_PAYOUT_STATUS,
+      payload: {
+        payoutStatus: ProgressStatus.IS_ERROR,
+      },
+    });
+  }
+}
+
 const _finalizeRound = async ({
   dispatch,
   roundId,
@@ -158,11 +222,9 @@ const _finalizeRound = async ({
       throw new Error("payoutStrategyAddress is undefined");
     }
 
-    console.log('payoutStrategyAddress', payoutStrategyAddress);
+    console.log("payoutStrategyAddress", payoutStrategyAddress);
 
-    const tree = generateStandardMerkleTree(distribution);
-
-    console.log(tree.dump());
+    const { tree } = generateStandardMerkleTree(distribution);
 
     const IpfsHash = await storeDocument(dispatch, matchingJSON);
 
@@ -172,7 +234,6 @@ const _finalizeRound = async ({
     };
 
     const merkleRoot = tree.root;
-    console.log("root", merkleRoot);
     const transactionBlockNumber = await finalizeToContract(
       dispatch,
       payoutStrategyAddress,
@@ -183,13 +244,14 @@ const _finalizeRound = async ({
 
     console.log("transactionBlockNumber: ", transactionBlockNumber);
 
-    const setReadyForPayoutStatus = await setReadyForPayout(
+    await setReadyForPayout(dispatch, roundId, signerOrProvider);
+
+    await payoutRound(
       dispatch,
-      roundId,
+      payoutStrategyAddress,
+      distribution,
       signerOrProvider
     );
-
-    console.log('setReadyForPayoutStatus', setReadyForPayoutStatus);
   } catch (error) {
     datadogLogs.logger.error(`error: _finalizeRound - ${error}`);
     console.error("_finalizeRound: ", error);
@@ -225,7 +287,8 @@ export const useFinalizeRound = () => {
     finalizeRound,
     IPFSCurrentStatus: context.state.IPFSCurrentStatus,
     finalizeRoundToContractStatus: context.state.finalizeRoundToContractStatus,
-    readyForPayoutStatus: context.state.readyForPayoutStatus
+    readyForPayoutStatus: context.state.readyForPayoutStatus,
+    payoutStatus: context.state.payoutStatus,
   };
 };
 
@@ -321,7 +384,7 @@ async function setReadyForPayout(
     dispatch({
       type: ActionType.SET_READY_FOR_PAYOUT_STATUS,
       payload: {
-        setReadyForPayoutStatus: ProgressStatus.IN_PROGRESS,
+        readyForPayoutStatus: ProgressStatus.IN_PROGRESS,
       },
     });
 
@@ -329,14 +392,14 @@ async function setReadyForPayout(
 
     dispatch({
       type: ActionType.SET_READY_FOR_PAYOUT_STATUS,
-      payload: { setReadyForPayoutStatus: ProgressStatus.IS_SUCCESS },
+      payload: { readyForPayoutStatus: ProgressStatus.IS_SUCCESS },
     });
   } catch (error) {
     datadogLogs.logger.error(`error: setReadyForPayout - ${error}`);
     console.error(`setReadyForPayout`, error);
     dispatch({
       type: ActionType.SET_READY_FOR_PAYOUT_STATUS,
-      payload: { setReadyForPayoutStatus: ProgressStatus.IS_ERROR },
+      payload: { readyForPayoutStatus: ProgressStatus.IS_ERROR },
     });
     throw error;
   }

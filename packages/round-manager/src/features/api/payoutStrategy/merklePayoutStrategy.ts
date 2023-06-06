@@ -1,5 +1,9 @@
 import { ethers, Signer } from "ethers";
+import { QFDistribution } from "../api";
+import { Web3Provider } from "@ethersproject/providers";
+import { generateStandardMerkleTree } from "../utils";
 import { merklePayoutStrategy } from "../contracts";
+import merklePayoutStrategyAbi from "../abi/payoutStrategy/merklePayoutStrategy";
 
 /**
  * Deploys a QFVotingStrategy contract by invoking the
@@ -47,3 +51,71 @@ export const deployMerklePayoutStrategyContract = async (
     throw new Error("Unable to deploy merkle payout strategy contract");
   }
 };
+
+export async function finalizeRoundToContract({
+  payoutStrategyAddress,
+  encodedDistribution,
+  signerOrProvider,
+}: FinalizeRoundToContractProps) {
+  try {
+    const merklePayoutImplementation = new ethers.Contract(
+      payoutStrategyAddress,
+      merklePayoutStrategyAbi,
+      signerOrProvider
+    );
+
+    // Finalize round
+    const tx = await merklePayoutImplementation.updateDistribution(
+      encodedDistribution
+    );
+    const receipt = await tx.wait();
+
+    console.log("✅ Update distribution transaction hash: ", tx.hash);
+
+    const blockNumber = receipt.blockNumber;
+    return {
+      transactionBlockNumber: blockNumber,
+    };
+  } catch (error) {
+    console.error("finalizeRoundToContract", error);
+    throw new Error("Unable to finalize Round");
+  }
+}
+
+interface FinalizeRoundToContractProps {
+  payoutStrategyAddress: string;
+  encodedDistribution: string;
+  signerOrProvider: Signer;
+}
+
+export async function handlePayout(
+  payoutStrategyAddress: string,
+  distribution: QFDistribution[],
+  signerOrProvider: Web3Provider
+) {
+  const { tree, values } = generateStandardMerkleTree(distribution);
+  const payouts = values.map((value) => {
+    const [grantee, amount, projectId] = value;
+    const merkleProof = tree.getProof(value);
+    return {
+      grantee,
+      amount,
+      merkleProof,
+      projectId,
+    };
+  });
+
+  const merklePayoutImplementation = new ethers.Contract(
+    payoutStrategyAddress,
+    merklePayoutStrategyAbi,
+    signerOrProvider
+  );
+
+  // Finalize round
+  const tx = await merklePayoutImplementation.payout(payouts);
+  const receipt = await tx.wait();
+
+  return {
+    transactionBlockNumber: receipt.blockNumber,
+  };
+}
