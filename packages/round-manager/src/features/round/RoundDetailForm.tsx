@@ -18,7 +18,7 @@ import * as yup from "yup";
 
 import { Program, Round } from "../api/types";
 import { FormContext } from "../common/FormWizard";
-import { Input } from "../common/styles";
+import {Button, Input} from "../common/styles";
 import { FormStepper } from "../common/FormStepper";
 import { Listbox, RadioGroup, Transition } from "@headlessui/react";
 import {
@@ -37,7 +37,7 @@ import { useWallet } from "../common/Auth";
 import moment from "moment";
 import ReactTooltip from "react-tooltip";
 
-const ValidationSchema = yup.object().shape({
+const ValidationSchema = (startAsap: boolean) => yup.object().shape({
   roundMetadata: yup.object({
     name: yup
       .string()
@@ -86,30 +86,23 @@ const ValidationSchema = yup.object().shape({
         }),
     }),
   }),
-  applicationsStartTime: yup
-    .date()
-    .required("This field is required.")
-    .min(new Date(0)),
-  applicationsEndTime: yup
-    .date()
-    .required("This field is required.")
-    .min(
-      yup.ref("applicationsStartTime"),
-      "Applications end date must be later than applications start date"
-    ),
-  roundStartTime: yup
-    .date()
-    .required("This field is required.")
-    .min(
-      yup.ref("applicationsStartTime"),
-      "Round start date must be later than applications start date"
-    ),
-  roundEndTime: yup
-    .date()
-    .min(
-      yup.ref("roundStartTime"),
-      "Round end date must be later than the round start date"
-    ),
+  ...(startAsap ? {} : {
+    roundStartTime: yup
+      .date()
+      .required("This field is required.")
+      .min(
+        yup.ref("applicationsStartTime"),
+        "Round start date must be later than applications start date"
+      ),
+  }),
+  roundEndTime: startAsap
+    ? yup.date()
+    : yup
+      .date()
+      .min(
+        yup.ref("roundStartTime"),
+        "Round end date must be later than the round start date"
+      ),
   token: yup
     .string()
     .required("You must select a payout token for your round.")
@@ -135,6 +128,7 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
   const program = props.initialData?.program;
   const { currentStep, setCurrentStep, stepsCount, formData, setFormData } =
     useContext(FormContext);
+  const [startASAP, setStartASAP] = useState(false);
   const defaultRoundMetadata = {
     matchingFunds: {
       matchingCap: false,
@@ -147,7 +141,7 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
       ...formData,
       roundMetadata: defaultRoundMetadata,
     },
-    resolver: yupResolver(ValidationSchema),
+    resolver: yupResolver(ValidationSchema(startASAP)),
   });
 
   const {
@@ -185,27 +179,36 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
 
   const next: SubmitHandler<Round> = async (values) => {
     const isQFRelayRound = watch("votingStrategy") === "QFRelay";
+    // TODO: Make this honor selected round end time when deploying to prod
+    const startASAPTimes = {
+      roundStartTime: moment()
+        .add(4, "minutes")
+        .startOf("minute")
+        .toDate(),
+      roundEndTime: moment()
+        .add(7, "minutes")
+        .startOf("minute")
+        .toDate()
+    };
+
+    const qfRelayTimes = {
+      applicationsStartTime: moment()
+        .add(2, "minutes")
+        .startOf("minute")
+        .toDate(),
+        applicationsEndTime: moment()
+      .add(3, "minutes")
+      .startOf("minute")
+      .toDate(),
+    };
+
     const data = {
       ...formData,
       ...values,
       // If it's a relay round, "ignore" application period
-      ...(isQFRelayRound
-        ? {
-            applicationsStartTime: moment()
-              .add(2, "minutes")
-              .startOf("minute")
-              .toDate(),
-            applicationsEndTime: moment()
-              .add(3, "minutes")
-              .startOf("minute")
-              .toDate(),
-            roundStartTime: moment()
-              .add(4, "minutes")
-              .startOf("minute")
-              .toDate(),
-            roundEndTime: moment().add(7, "minutes").startOf("minute").toDate(),
-          }
-        : {}),
+      ...(isQFRelayRound ? qfRelayTimes : {}),
+      // If start ASAP, set start times to now
+      ...(startASAP ?startASAPTimes : {}),
     };
     setFormData(data);
     setCurrentStep(currentStep + 1);
@@ -314,21 +317,11 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
                 </div>
 
                 <p className="mt-6 mb-4 text-sm">
-                  What are the dates for the Applications and Round voting
-                  period(s)?
+                  What are the dates for the Round voting
+                  period?
                   <ApplicationDatesInformation />
                 </p>
 
-                <p className="text-sm mb-2">
-                  <span>
-                    {watch("votingStrategy") !== "QFRelay"
-                      ? "Applications"
-                      : "Application period does not apply for QFRelay Voting"}
-                  </span>
-                  <span className="text-right text-violet-400 float-right text-xs mt-1">
-                    *Required
-                  </span>
-                </p>
                 <p className="text-sm mt-4 mb-2">
                   Round
                   <span className="text-right text-violet-400 float-right text-xs mt-1">
@@ -336,7 +329,10 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
                   </span>
                 </p>
                 <div className="grid grid-cols-6 gap-6">
-                  <div className="col-span-6 sm:col-span-3">
+                  <div className="col-span-12">
+                    <Button className={`w-full`} $variant={startASAP ? "solid" : "outline"} onClick={() => setStartASAP(currentVal => !currentVal)}>{startASAP ? "Starting ASAP" : "Set to start ASAP"}</Button>
+                  </div>
+                  {!startASAP && (<div className="col-span-6 sm:col-span-3">
                     <div
                       className={`relative border rounded-md px-3 py-2 mb-2 shadow-sm focus-within:ring-1 ${
                         errors.roundStartTime
@@ -365,7 +361,8 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
                               id: "roundStartTime",
                               placeholder: "",
                               className:
-                                "block w-full border-0 p-0 text-gray-900 placeholder-grey-400 focus:ring-0 text-sm",
+                                "block w-full border-0 p-0 text-gray-900 placeholder-grey-400 focus:ring-0 text-sm disabled:opacity-50 disabled:text-gray-500",
+                              disabled: startASAP,
                             }}
                             utc={true}
                             dateFormat={"YYYY-MM-DD"}
@@ -396,7 +393,7 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
                         {errors.roundStartTime?.message}
                       </p>
                     )}
-                  </div>
+                  </div>)}
 
                   <div className="col-span-6 sm:col-span-3">
                     <div
