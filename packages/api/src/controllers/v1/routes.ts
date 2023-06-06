@@ -45,7 +45,7 @@ router.get(
   "/data/match/project/:chainId/:roundId/:projectId",
   getProjectMatchDataHandler
 );
-router.get("/data/match/round/:chainId/:roundId", updateRoundMatchHandler);
+router.get("/data/match/round/:chainId/:roundId", getRoundMatchDataHandler);
 
 router.post("/update/add-defender-sentinel-address/:votingStrategyAddress", updateDefenderSentinelHandler);
 
