@@ -235,11 +235,11 @@ export function handleEscrowFundsToPayoutContract(
   event: EscrowFundsToPayoutContractEvent
 ): void {
   const _round = event.address.toHex();
-  log.info("salty {}", [_round])
+
   const _matchAmount = event.params.matchAmount;
-log.info("salty2 {}", [_matchAmount.toString()])
+
   let quadraticTipping = QuadraticTipping.load(_round);
-  log.info("salty3 {}", [quadraticTipping!.id])
+
   if (quadraticTipping == null) {
     log.warning("quadraticTipping is null", []);
   }
@@ -249,9 +249,7 @@ log.info("salty2 {}", [_matchAmount.toString()])
   quadraticTipping!.save();
 }
 
-export function handleMatchAmountUpdated(
-  event: MatchAmountUpdatedEvent
-): void {
+export function handleMatchAmountUpdated(event: MatchAmountUpdatedEvent): void {
   const _round = event.address.toHex();
   const _newAmount = event.params.newAmount;
 
@@ -261,4 +259,4 @@ export function handleMatchAmountUpdated(
   matchAmount = _newAmount;
   quadraticTipping!.matchAmount = matchAmount;
   quadraticTipping!.save();
-};
+}
