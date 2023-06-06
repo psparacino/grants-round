@@ -12,7 +12,7 @@ import {
   roundFactoryContract,
   roundImplementationContract,
 } from "./contracts";
-import { BigNumberish, ethers } from "ethers";
+import { ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 import { Signer } from "@ethersproject/abstract-signer";
 import erc20Abi from "./abi/erc20";
