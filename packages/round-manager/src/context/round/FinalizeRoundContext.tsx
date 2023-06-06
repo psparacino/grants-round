@@ -226,6 +226,8 @@ const _finalizeRound = async ({
 
     const { tree } = generateStandardMerkleTree(distribution);
 
+    console.log('generated the merkle tree, storing the document', tree);
+
     const IpfsHash = await storeDocument(dispatch, matchingJSON);
 
     const distributionMetaPtr = {

@@ -459,6 +459,8 @@ export const generateStandardMerkleTree = (distribution: QFDistribution[]) => {
     ethers.utils.formatBytes32String(item.projectId),
   ]);
 
+  console.log("merkle tree values: ", values);
+
   return {
     values,
     tree: StandardMerkleTree.of(values, ["address", "uint256", "bytes32"]),
