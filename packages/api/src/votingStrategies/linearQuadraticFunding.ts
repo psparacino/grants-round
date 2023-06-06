@@ -17,9 +17,6 @@ import {
   fetchAverageTokenPrices,
   fetchProjectIdToPayoutAddressMapping, fetchRoundMetadata,
 } from "../utils";
-import {
-  fetchContributorsAboveThreshold
-} from "../sybilProtection/passport";
 
 /**
  * summarizeRound is an async function that summarizes a round of voting by counting the number of contributions, the number of unique contributors, the total amount of contributions in USD, and the average contribution in USD.
@@ -352,15 +349,12 @@ export const matchQFContributions = async (
     }
   }
 
-  console.log('contributionTokens', contributionTokens);
   const prices: any = await fetchAverageTokenPrices(
     chainId,
     contributionTokens,
     roundStartTime,
     roundEndTime
   );
-
-  console.log('prices', prices);
 
   // group contributions by project
   for (const contribution of contributions) {
@@ -381,6 +375,7 @@ export const matchQFContributions = async (
           },
         },
       };
+      continue;
     }
 
     // check if contributor has already made contributions to the project
@@ -416,18 +411,15 @@ export const matchQFContributions = async (
 
       uniqueContributors.add(contributor);
 
-      const checksumAddress = ethers.utils.getAddress(contributor)
-
-      if (
-        usdValue
-        // contributorsWhoShouldBeMatched.includes(checksumAddress)
-      ) {
+      if (usdValue) {
         sumOfSquares += Math.sqrt(usdValue);
         sumOfContributions += usdValue;
       }
     });
 
-    const matchInUSD = Math.pow(sumOfSquares, 2) - sumOfContributions;
+    const matchInUSD = Math.pow(sumOfSquares, 2);
+    // TODO: This was originally in the code but seems to be wrong? Ask @owocki maybe
+    // const matchInUSD = Math.pow(sumOfSquares, 2) - sumOfContributions;
 
     const projectPayoutAddress = projectIdToPayoutMapping.get(projectId)!;
 
@@ -544,7 +536,6 @@ export const matchQFContributions = async (
     });
     console.log("=====================");
   }
-
 
   return {
     distribution: matchResults,
