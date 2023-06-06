@@ -116,7 +116,7 @@ const finalizeRoundReducer = (state: FinalizeRoundState, action: Action) => {
     case ActionType.SET_READY_FOR_PAYOUT_STATUS:
       return {
         ...state,
-        setReadForPayoutStatus: action.payload.readyForPayoutStatus,
+        readyForPayoutStatus: action.payload.readyForPayoutStatus,
       };
     case ActionType.SET_PAYOUT_STATUS:
       return {
