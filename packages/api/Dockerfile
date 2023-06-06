@@ -11,6 +11,9 @@ COPY tsconfig.json .
 COPY src/ src/
 COPY prisma/ prisma/
 
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
 RUN npm run prisma:migrate
 RUN npm run build
 
