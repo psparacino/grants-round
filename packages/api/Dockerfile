@@ -22,12 +22,12 @@ RUN npm run build
 # Cleanup
 RUN npx clean-modules
 
-# Using multi-staged builds to decrease image size.
-FROM node:14-alpine
-WORKDIR /src/app
-COPY --from=build src/app/node_modules/ node_modules/
-COPY --from=build src/app/package.json .
-COPY --from=build src/app/build/ build/
+## Using multi-staged builds to decrease image size.
+#FROM node:14-alpine
+#WORKDIR /src/app
+#COPY --from=build src/app/node_modules/ node_modules/
+#COPY --from=build src/app/package.json .
+#COPY --from=build src/app/build/ build/
 
 ENV NODE_ENV production
 
