@@ -1,8 +1,8 @@
 import express, { Express } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import routes from "./controllers/v1/routes";
-import { initSentry } from "../sentry";
+import {initSentry} from "./sentry";
+import routes from "./src/controllers/v1/routes";
 
 dotenv.config();
 
