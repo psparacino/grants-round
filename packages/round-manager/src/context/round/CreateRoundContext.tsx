@@ -24,7 +24,6 @@ import { Signer } from "@ethersproject/abstract-signer";
 import { deployQFVotingContract } from "../../features/api/votingStrategy/qfVotingStrategy";
 import { deployQFRelayContract } from "../../features/api/votingStrategy/qfRelayStrategy";
 import { deployMerklePayoutStrategyContract } from "../../features/api/payoutStrategy/merklePayoutStrategy";
-import { BigNumberish } from "ethers";
 import { updateDefenderSentinel } from "../../features/api/defender";
 
 type SetStatusFn = React.Dispatch<SetStateAction<ProgressStatus>>;
@@ -433,7 +432,7 @@ async function handleDeployRoundContract(
 async function handleUpdateRoundMatchAmount(
   setDeploymentStatus: SetStatusFn,
   roundId: string,
-  amount: BigNumberish,
+  amount: number,
   signerOrProvider: Signer
 ) {
   try {
@@ -472,7 +471,7 @@ async function handleUpdateDefenderSentinel(
 
 async function handleTransferFundsToRound(
   setDeploymentStatus: SetStatusFn,
-  amount: BigNumberish,
+  amount: number,
   roundId: string,
   tokenAddress: string,
   signerOrProvider: Signer

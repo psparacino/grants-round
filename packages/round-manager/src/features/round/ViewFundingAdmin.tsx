@@ -44,7 +44,7 @@ export default function ViewFundingAdmin(props: {
   return (
     <div>
       {isBeforeRoundEndDate && (
-        <div className="mt-4 p-4 bg-red-50 text-red-600 text-xl">
+        <div className="mt-4 mb-4 p-4 bg-red-50 text-red-600 text-xl">
           ! Round has not finished yet !
         </div>
       )}
@@ -380,8 +380,7 @@ function FinalizeRound(props: {
           />
         </div>
       )}
-      {/*{!props.useContractData && (*/}
-      {
+      {!props.useContractData && (
         <div className="w-full pt-12">
           <span className="font-bold" data-testid="finalize-round">
             Finalize Round
@@ -451,7 +450,7 @@ function FinalizeRound(props: {
             />
           </div>
         </div>
-      }
+      )}
     </>
   );
 }

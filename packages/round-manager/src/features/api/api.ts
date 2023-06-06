@@ -119,7 +119,7 @@ export const useRoundMatchData = (chainId: string, roundId: string) => {
       })
       .then((data) => {
         if (data.success) {
-          setRoundMatchData(data.data.distribution);
+          setRoundMatchData(data.data);
         } else {
           setError(data.message);
         }

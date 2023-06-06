@@ -306,7 +306,7 @@ export async function deployRoundContract(
 
 export const updateRoundMatchAmount = async (
   roundId: string,
-  amount: BigNumberish,
+  amount: number,
   signerOrProvider: Signer
 ) => {
   try {
@@ -317,7 +317,7 @@ export const updateRoundMatchAmount = async (
     );
 
     // Finalize round
-    const tx = await roundImplementation.updateMatchAmount(amount);
+    const tx = await roundImplementation.updateMatchAmount(ethers.utils.parseEther(Number(amount).toFixed(18)));
     const receipt = await tx.wait();
     console.log("✅ Update match amount transaction hash: ", tx.hash);
 
@@ -331,7 +331,7 @@ export const updateRoundMatchAmount = async (
 };
 
 export const transferFundsToRound = async (
-  amount: BigNumberish,
+  amount: number,
   roundId: string,
   tokenAddress: string,
   signerOrProvider: Signer
@@ -343,7 +343,7 @@ export const transferFundsToRound = async (
       signerOrProvider
     );
 
-    const tx = await tokenContract.transfer(roundId, amount);
+    const tx = await tokenContract.transfer(roundId, ethers.utils.parseEther(Number(amount).toFixed(18)));
     const receipt = await tx.wait();
     console.log("✅ Fund contract transaction hash: ", tx.hash);
     return {
