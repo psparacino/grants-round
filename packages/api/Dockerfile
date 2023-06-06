@@ -9,7 +9,9 @@ RUN npm install
 
 COPY tsconfig.json .
 COPY src/ src/
+COPY prisma/ prisma/
 
+RUN npm run prisma:migrate
 RUN npm run build
 
 # Cleanup
