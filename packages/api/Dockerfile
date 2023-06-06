@@ -1,6 +1,7 @@
-FROM node:14-slim as build
-RUN apt-get update
-RUN apt-get install -y openssl
+FROM node:18-slim as base
+
+RUN apt-get update && apt-get install -y openssl libssl-dev
+
 RUN npm install -g npm@8
 WORKDIR /src/app
 
