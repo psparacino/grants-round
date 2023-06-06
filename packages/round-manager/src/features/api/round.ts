@@ -345,7 +345,7 @@ export const transferFundsToRound = async (
 
     const tx = await tokenContract.transfer(roundId, amount);
     const receipt = await tx.wait();
-    console.log("✅ Update match amount transaction hash: ", tx.hash);
+    console.log("✅ Fund contract transaction hash: ", tx.hash);
     return {
       transactionBlockNumber: receipt.blockNumber,
     };
