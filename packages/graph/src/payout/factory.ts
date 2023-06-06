@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 
 import { PayoutContractCreated as PayoutContractCreatedEvent } from "../../generated/MerklePayoutStrategyFactory/MerklePayoutStrategyFactory";
 import { MerklePayoutStrategyImplementation } from "../../generated/templates";
@@ -14,14 +14,15 @@ export function handlePayoutContractCreated(
   event: PayoutContractCreatedEvent
 ): void {
   const payoutContractAddress = event.params.payoutContractAddress;
-
+  log.info("hare {}", [payoutContractAddress.toHex()])
   const payoutContract = ImplementationContract.bind(payoutContractAddress);
   const roundAddress = payoutContract.roundAddress();
 
   const quadraticTipping = QuadraticTipping.load(roundAddress.toHex());
+  log.info("fox {}", [roundAddress.toHex()])
   if (quadraticTipping == null) {
     const quadraticTipping = new QuadraticTipping(roundAddress.toHex());
-    quadraticTipping.matchAmount = BigInt.fromI32(0);
+    quadraticTipping.matchAmount = BigInt.fromI32(1);
     quadraticTipping.round = payoutContractAddress.toHex();
     quadraticTipping.readyForPayout = false;
     quadraticTipping.batchPayoutCompleted = false;

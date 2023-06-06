@@ -1,9 +1,9 @@
 {
-  "network": "hardhat",
+  "network": "mainnet",
   "startBlock": 1,
-  "programFactoryAddress": "0x79c2394B20A809EA693a7D64323A8846FF02029c",
-  "QFVotingStrategyFactoryAddress": "0x06A6Cc566c5A88E77B1353Cdc3110C2e6c828e38",
-  "QFRelayStrategyFactoryAddress": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-  "roundFactoryAddress": "0x89f01CD69087669f8e49F6FB8aD475F622Ac8791",
-  "merklePayoutStrategyFactoryAddress": "0x5e0eBbBbDfFfDc9e4eAa8c0c0e1eBbBbDfFfDc9e"
+  "roundFactoryAddress": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
+  "programFactoryAddress": "0x59b670e9fA9D0A427751Af201D676719a970857b",
+  "QFVotingStrategyFactoryAddress": "0xb4dC171C0edEc8C0032cd0f2d30921c09FA35e34",
+  "QFRelayStrategyFactoryAddress": "0x4A679253410272dd5232B3Ff7cF5dbB88f295319",
+  "merklePayoutStrategyFactoryAddress": "0x09635F643e140090A9A8Dcd712eD6285858ceBef"
 }
