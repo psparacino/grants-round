@@ -1,8 +1,10 @@
 {
   "network": "mumbai",
-  "startBlock": 36285000,
+  "startBlock": 31402729,
   "programFactoryAddress": "0xcc19871C2DaFF31dC1A7add1240B6819A8F4E544",
-  "QFVotingStrategyFactoryAddress": "0xBcC6f8AeCCd46b941A3A0BFd5eC3E0155Bcb78ba",
+  "QFVotingStrategyFactoryAddress": "0xA86837773d8167C20f648Fcc11dB7eA4B95B4b7A",
   "QFRelayStrategyFactoryAddress": "0xBcC6f8AeCCd46b941A3A0BFd5eC3E0155Bcb78ba",
-  "roundFactoryAddress": "0x6bef29C694Ca94c0640f0D01D5EE5c17C7eAba94"
+  "roundFactoryAddress": "0x6bef29C694Ca94c0640f0D01D5EE5c17C7eAba94",
+  "merklePayoutStrategyFactoryAddress": "0xa558eC037B858BbaBBd32f70754c4C818d7835b7"
+
 }

@@ -21,10 +21,11 @@
     "prepare:mumbai": "mustache config/mumbai.json subgraph.template.yaml > subgraph.yaml",
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ bitbeckers/ql-dev",
-    "create-local": "graph create --node http://localhost:8020/ bitbeckers/ql-dev",
-    "remove-local": "graph remove --node http://localhost:8020/ bitbeckers/ql-dev",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 bitbeckers/ql-dev",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ thelostone-mc/program-factory",
+    "deploy-dev": "yarn prepare:mumbai && yarn codegen && yarn build && graph deploy --node https://api.thegraph.com/deploy/ psparacino/quadratic-lenster-dev",
+    "create-local": "graph create --node http://localhost:8020/ thelostone-mc/program-factory",
+    "remove-local": "graph remove --node http://localhost:8020/ thelostone-mc/program-factory",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 thelostone-mc/program-factory",
     "test": "graph test"
   },
   "dependencies": {
