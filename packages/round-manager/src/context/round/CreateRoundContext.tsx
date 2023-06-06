@@ -1,17 +1,31 @@
-import {ProgressStatus, Round, StorageProtocolID, VotingStrategy,} from "../../features/api/types";
-import React, {createContext, SetStateAction, useContext, useState,} from "react";
-import {saveToIPFS} from "../../features/api/ipfs";
-import {useWallet} from "../../features/common/Auth";
-import {deployRoundContract, transferFundsToRound, updateRoundMatchAmount} from "../../features/api/round";
-import {waitForSubgraphSyncTo} from "../../features/api/subgraph";
-import {SchemaQuestion} from "../../features/api/utils";
-import {datadogLogs} from "@datadog/browser-logs";
-import {Signer} from "@ethersproject/abstract-signer";
-import {deployQFVotingContract} from "../../features/api/votingStrategy/qfVotingStrategy";
-import {deployQFRelayContract} from "../../features/api/votingStrategy/qfRelayStrategy";
-import {deployMerklePayoutStrategyContract} from "../../features/api/payoutStrategy/merklePayoutStrategy";
-import {BigNumberish} from "ethers";
-import {updateDefenderSentinel} from "../../features/api/defender";
+import {
+  ProgressStatus,
+  Round,
+  StorageProtocolID,
+  VotingStrategy,
+} from "../../features/api/types";
+import React, {
+  createContext,
+  SetStateAction,
+  useContext,
+  useState,
+} from "react";
+import { saveToIPFS } from "../../features/api/ipfs";
+import { useWallet } from "../../features/common/Auth";
+import {
+  deployRoundContract,
+  transferFundsToRound,
+  updateRoundMatchAmount,
+} from "../../features/api/round";
+import { waitForSubgraphSyncTo } from "../../features/api/subgraph";
+import { SchemaQuestion } from "../../features/api/utils";
+import { datadogLogs } from "@datadog/browser-logs";
+import { Signer } from "@ethersproject/abstract-signer";
+import { deployQFVotingContract } from "../../features/api/votingStrategy/qfVotingStrategy";
+import { deployQFRelayContract } from "../../features/api/votingStrategy/qfRelayStrategy";
+import { deployMerklePayoutStrategyContract } from "../../features/api/payoutStrategy/merklePayoutStrategy";
+import { BigNumberish } from "ethers";
+import { updateDefenderSentinel } from "../../features/api/defender";
 
 type SetStatusFn = React.Dispatch<SetStateAction<ProgressStatus>>;
 
@@ -100,8 +114,10 @@ export const CreateRoundProvider = ({
   const [roundTransferFundsStatus, setRoundTransferFundsStatus] = useState(
     initialCreateRoundState.roundTransferFundsStatus
   );
-  const [roundUpdateMatchAmountStatus, setRoundUpdateMatchAmountStatus] = useState(initialCreateRoundState.roundUpdateMatchAmountStatus);
-  const [defenderUpdateSentinelStatus, setDefenderUpdateSentinelStatus] = useState(initialCreateRoundState.defenderUpdateSentinelStatus);
+  const [roundUpdateMatchAmountStatus, setRoundUpdateMatchAmountStatus] =
+    useState(initialCreateRoundState.roundUpdateMatchAmountStatus);
+  const [defenderUpdateSentinelStatus, setDefenderUpdateSentinelStatus] =
+    useState(initialCreateRoundState.defenderUpdateSentinelStatus);
   const [indexingStatus, setIndexingStatus] = useState(
     initialCreateRoundState.indexingStatus
   );
@@ -198,15 +214,17 @@ const _createRound = async ({
       payoutStrategy: payoutContractAddress,
     };
 
-    const { roundAddress, transactionBlockNumber } = await handleDeployRoundContract(
-      setRoundContractDeploymentStatus,
-      roundContractInputsWithContracts,
-      signerOrProvider
-    );
+    const { roundAddress, transactionBlockNumber } =
+      await handleDeployRoundContract(
+        setRoundContractDeploymentStatus,
+        roundContractInputsWithContracts,
+        signerOrProvider
+      );
 
     await handleTransferFundsToRound(
       setRoundTransferFundsStatus,
-      roundMetadataWithProgramContractAddress?.matchingFunds?.matchingFundsAvailable || 0,
+      roundMetadataWithProgramContractAddress?.matchingFunds
+        ?.matchingFundsAvailable || 0,
       roundAddress!,
       round.token,
       signerOrProvider
@@ -215,13 +233,14 @@ const _createRound = async ({
     await handleUpdateRoundMatchAmount(
       setRoundUpdateMatchAmountStatus,
       roundAddress!,
-      roundMetadataWithProgramContractAddress?.matchingFunds?.matchingFundsAvailable || 0,
+      roundMetadataWithProgramContractAddress?.matchingFunds
+        ?.matchingFundsAvailable || 0,
       signerOrProvider
     );
 
     await handleUpdateDefenderSentinel(
       setDefenderUpdateSentinelStatus,
-      votingContractAddress,
+      votingContractAddress
     );
 
     await waitForSubgraphToUpdate(
@@ -304,7 +323,9 @@ function resetToInitialState(
   );
   setDeployingStatus(initialCreateRoundState.roundContractDeploymentStatus);
   setRoundTransferFundsStatus(initialCreateRoundState.roundTransferFundsStatus);
-  setRoundUpdateMatchStatus(initialCreateRoundState.roundUpdateMatchAmountStatus);
+  setRoundUpdateMatchStatus(
+    initialCreateRoundState.roundUpdateMatchAmountStatus
+  );
   setIndexingStatus(initialCreateRoundState.indexingStatus);
 }
 
@@ -390,13 +411,10 @@ async function handleDeployRoundContract(
   setDeploymentStatus: SetStatusFn,
   round: Round,
   signerOrProvider: Signer
-)  {
+) {
   try {
     setDeploymentStatus(ProgressStatus.IN_PROGRESS);
-    const result = await deployRoundContract(
-      round,
-      signerOrProvider
-    );
+    const result = await deployRoundContract(round, signerOrProvider);
 
     setDeploymentStatus(ProgressStatus.IS_SUCCESS);
 
@@ -412,11 +430,15 @@ async function handleUpdateRoundMatchAmount(
   setDeploymentStatus: SetStatusFn,
   roundId: string,
   amount: BigNumberish,
-  signerOrProvider: Signer,
+  signerOrProvider: Signer
 ) {
   try {
     setDeploymentStatus(ProgressStatus.IN_PROGRESS);
-    const { transactionBlockNumber } = await updateRoundMatchAmount(roundId, amount, signerOrProvider);
+    const { transactionBlockNumber } = await updateRoundMatchAmount(
+      roundId,
+      amount,
+      signerOrProvider
+    );
 
     setDeploymentStatus(ProgressStatus.IS_SUCCESS);
     return transactionBlockNumber;
@@ -429,7 +451,7 @@ async function handleUpdateRoundMatchAmount(
 
 async function handleUpdateDefenderSentinel(
   setDefenderUpdateSentinelStatus: SetStatusFn,
-  votingContractAddress: string,
+  votingContractAddress: string
 ) {
   try {
     setDefenderUpdateSentinelStatus(ProgressStatus.IN_PROGRESS);

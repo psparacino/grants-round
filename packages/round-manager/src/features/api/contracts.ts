@@ -250,13 +250,12 @@ export const merklePayoutStrategy = (chainId: ChainId | undefined) => {
       address = "";
       break;
     }
-
   }
   return {
     address: address,
     abi: abi.merklePayoutStrategyFactory,
-  }
-}
+  };
+};
 
 // /* MerklePayoutStrategy */
 // export const merklePayoutStrategy: Contract = {
