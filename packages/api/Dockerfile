@@ -10,6 +10,8 @@ RUN npm install
 COPY tsconfig.json .
 COPY src/ src/
 COPY prisma/ prisma/
+COPY sentry.ts ./sentry.ts
+COPY index.ts ./index.ts
 
 ARG DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
