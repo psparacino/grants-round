@@ -1,5 +1,7 @@
 // Update this file any time a new Payout Strategy contract has been added
 type PayoutStrategies = {
+  merklePayoutStrategyFactory?: string;
+  merklePayoutStrategyImplementation?: string;
   merklePayoutContract?: string;
 };
 
@@ -22,6 +24,10 @@ export const PayoutParams: DeployParams = {
     merklePayoutContract: "0xcaC94621584a1a0121c0B5664A9FFB0B86588B8a",
   },
   "polygon-mumbai": {
-    merklePayoutContract: "0xb04f69d8b4e300d566813a9b62f5d7878a0322c3",
+    merklePayoutStrategyFactory: "0xa558eC037B858BbaBBd32f70754c4C818d7835b7",
+    merklePayoutStrategyImplementation:
+      "0xFC6B95AC4bd5e94DFa16d9952532F35701be8db5",
+    merklePayoutContract:
+      "0x6B40c07A3E61eFe37be42e215C4D1E74394d9f97",
   },
 };

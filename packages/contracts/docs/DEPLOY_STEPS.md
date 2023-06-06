@@ -5,11 +5,10 @@ All the deploy scripts will expect network param to know which network the contr
 
 | network            |
 | ------------------ |
-| `goerli`           |
-| `optimism-mainnet` |
-| 'fantom-mainnet'   |
-| `fantom-testnet`   |
-| `mainnet`          |
+| `localhost`           |
+| `polygon-mumbai` |
+| 'polygon'   |
+
 
 ### Program Setup
 
@@ -26,6 +25,32 @@ cp ../.env.example ../.env
    - `INFURA_ID` : Infura ID for deploying contract
    - `DEPLOYER_PRIVATE_KEY` : address which deploys the contract
    - `ETHERSCAN_API_KEY` : API key for etherscan verification
+
+
+### UPDATED DEPLOY SCRIPTS can be run on polygon-mumbai, localhost, and polygon
+
+if you would like to use the old deployment method skip to "OLD DEPLOYMENT METHOD"  if you want to save some time and effort just do the next two steps.
+
+(if you want to create a local environment open a new terminal and run `yarn run-node` then in a new window run `yarn create-local-environment`)
+
+  2. deploy all contracts
+
+ ```shell
+  yarn deploy-all polygon-mumbai
+  ```
+  follow instructions
+
+  3. create a new round
+  
+```shell
+  yarn create-new-round polygon-mumbai
+  ```
+
+     follow instructions and then you're done you can stop here.
+
+
+
+### OLD DEPLOYMENT METHOD
 
 2. Deploy the `ProgramFactory` contract
 
@@ -230,7 +255,9 @@ yarn run deploy-qf-relay-implementation goerli
 yarn run link-qf-relay-implementation goerli
 
 # Payout
-yarn run deploy-merkle-contract goerli
+yarn run deploy-merkle-payout-factory goerli
+yarn run deploy-merkle-payout-implementation goerli
+yarn run link-merkle-payout goerli
 
 # Round
 yarn run deploy-round-factory goerli

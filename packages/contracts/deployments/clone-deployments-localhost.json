@@ -1,0 +1,6 @@
+{
+  "ProgramContract": "0x55652FF92Dc17a21AD6810Cce2F4703fa2339CAE",
+  "RoundContract": "0xb4dC171C0edEc8C0032cd0f2d30921c09FA35e34",
+  "QuadraticFundingRelayStrategyContract": "0xca4211da53d1bbab819B03138302a21d6F6B7647",
+  "MerklePayoutStrategyContract": "0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf"
+}
