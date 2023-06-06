@@ -88,7 +88,7 @@ function InformationContent(props: {
     }
   }, [distributionMetaPtr, matchingDistributionContract]);
 
-  const { data, error, loading, refetch } = useRoundMatchData(
+  const { data, error, loading, refetch: refetchMatchingData } = useRoundMatchData(
     props.chainId,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     props.roundId!
@@ -101,7 +101,7 @@ function InformationContent(props: {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       props.roundId!
     );
-    refetch();
+    refetchMatchingData();
     setUpdatingMatchData(false);
   };
 
@@ -121,19 +121,19 @@ function InformationContent(props: {
   });
   return (
     <>
+      <Button
+        className={"bg-gray-200 hover:bg-gray-300 text-gray-900"}
+        onClick={onUpdateMatchData}
+      >
+        Update matching stats
+      </Button>
       <div>
         {(loading || isLoading || updatingMatchData) && (
           <Spinner text="We're fetching the matching data." />
         )}
-        {(error || isError) && <ErrorMessage />}
-        <Button
-          className={"ml-8 bg-gray-200 hover:bg-gray-300 text-gray-900"}
-          onClick={onUpdateMatchData}
-        >
-          Update matching stats
-        </Button>
+        {(error || isError) && !updatingMatchData && <ErrorMessage />}
       </div>
-      {!error && !isError && !loading && !isLoading && (
+      {!error && !isError && !loading && !isLoading && !updatingMatchData && (
         <FinalizeRound
           roundId={props.roundId}
           matchingData={matchingData}
