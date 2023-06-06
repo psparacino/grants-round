@@ -49,65 +49,17 @@ export const updateRoundMatchHandler = async (req: Request, res: Response) => {
         break;
     }
 
-    if (results) {
-      try {
-        const upsetRecordStatus = await db.upsertRoundRecord(
-          roundId,
-          {
-            isSaturated: results.isSaturated,
-          },
-          {
-            chainId: chainIdVerbose,
-            roundId: roundId,
-            votingStrategyName: votingStrategyName,
-            isSaturated: results.isSaturated,
-          }
-        );
-        if (upsetRecordStatus.error) {
-          throw upsetRecordStatus.error;
-        }
-
-        // save the distribution results to the db
-        // TODO: figure out if there is a better way to batch transactions
-        for (const projectMatch of results.distribution) {
-          const upsertMatchStatus = await db.upsertProjectMatchRecord(
-            chainId,
-            roundId,
-            metadata,
-            projectMatch
-          );
-          if (upsetRecordStatus.error) {
-            throw upsertMatchStatus.error;
-          }
-        }
-
-        const match = await db.getRoundMatchRecord(roundId);
-        if (match.error) {
-          throw match.error;
-        }
-
-        cache.set(`cache_${req.originalUrl}`, match.result);
-        return handleResponse(res, 200, `${req.originalUrl}`, match.result);
-      } catch (error) {
-        console.error(error);
-
-        results.distribution = results.distribution.map((dist) => {
-          return {
-            id: null,
-            createdAt: null,
-            updatedAt: new Date(),
-            ...dist,
-            roundId: roundId,
-          };
-        });
-        const dbFailResults = results.distribution;
-
-        cache.set(`cache_${req.originalUrl}`, dbFailResults);
-        return handleResponse(res, 200, `${req.originalUrl}`, dbFailResults);
-      }
-    } else {
+    if (!results) {
       throw "error: no results";
     }
+
+    return handleResponse(res, 200, `${req.originalUrl}`, {
+      ...results,
+      distribution: results.distribution.map(result => ({
+        ...result,
+        roundId: roundId,
+      }))
+    });
   } catch (error) {
     console.error("updateRoundMatchHandler", error);
     return handleResponse(res, 500, "error: something went wrong");
