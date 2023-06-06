@@ -5,7 +5,7 @@ import {
   Round,
   VotingStrategy,
   QuadraticTipping,
-  QuadraticTippingDistribution
+  QuadraticTippingDistribution,
 } from "../../generated/schema";
 import { RoundImplementation } from "../../generated/templates";
 import { RoundImplementation as RoundImplementationContract } from "../../generated/templates/RoundImplementation/RoundImplementation";
@@ -95,22 +95,22 @@ export function handleRoundCreated(event: RoundCreatedEvent): void {
   round.votingStrategy = votingStrategy.id;
 
   // Initialize Quadratic Tipping
-  
-  let quadraticTipping: QuadraticTipping = new QuadraticTipping(
-    roundContractAddress.toHex()
-  );
-  quadraticTipping.id = round.id;
-  quadraticTipping.round = round.id;
-  quadraticTipping.matchAmount = BigInt.fromI32(0);
-  quadraticTipping.votes = [];
-  quadraticTipping.distributions = [];
-  quadraticTipping.batchPayoutCompleted = false;
-  quadraticTipping.readyForPayout = false;
-  quadraticTipping.save();
-
-  let quadraticTippingDistribution : QuadraticTippingDistribution = new QuadraticTippingDistribution(
-    roundContractAddress.toHex()
-  );
+  let quadraticTipping = QuadraticTipping.load(roundContractAddress.toHex());
+  if (quadraticTipping == null) {
+    let quadraticTipping: QuadraticTipping = new QuadraticTipping(
+      roundContractAddress.toHex()
+    );
+    quadraticTipping.id = round.id;
+    quadraticTipping.round = round.id;
+    quadraticTipping.matchAmount = BigInt.fromI32(0);
+    quadraticTipping.votes = [];
+    quadraticTipping.distributions = [];
+    quadraticTipping.batchPayoutCompleted = false;
+    quadraticTipping.readyForPayout = false;
+    quadraticTipping.save();
+  }
+  let quadraticTippingDistribution: QuadraticTippingDistribution =
+    new QuadraticTippingDistribution(roundContractAddress.toHex());
   quadraticTippingDistribution.id = round.id;
   quadraticTippingDistribution.round = round.id;
   quadraticTippingDistribution.address = "";
@@ -118,16 +118,12 @@ export function handleRoundCreated(event: RoundCreatedEvent): void {
   quadraticTippingDistribution.projectId = "";
   quadraticTippingDistribution.token = "";
   quadraticTippingDistribution.save();
-  
-
 
   // set timestamp
   round.createdAt = event.block.timestamp;
   round.updatedAt = event.block.timestamp;
 
   round.save();
-
-  
 
   RoundImplementation.create(roundContractAddress);
 }

@@ -124,7 +124,7 @@ type QFVote @entity {
   projectId: String!
   version: String!
   createdAt: BigInt!
-  # round: Round!
+  round: Round
 }
 
 

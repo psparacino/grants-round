@@ -1,6 +1,10 @@
-import { log } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import { Voted as VotedEvent } from "../../../generated/QuadraticFundingRelayStrategy/QuadraticFundingRelayStrategyImplementation";
-import { QuadraticTipping, QFVote, VotingStrategy } from "../../../generated/schema";
+import {
+  QuadraticTipping,
+  QFVote,
+  VotingStrategy,
+} from "../../../generated/schema";
 import { generateID } from "../../utils";
 
 const VERSION = "0.1.0";
@@ -10,16 +14,15 @@ const VERSION = "0.1.0";
  * @param event VotedEvent
  */
 export function handleVote(event: VotedEvent): void {
-
   // load voting strategy contract
   const votingStrategyAddress = event.address;
   let votingStrategy = VotingStrategy.load(votingStrategyAddress.toHex());
 
   if (!votingStrategy) {
-    log.warning("--> handleVotingContractCreated {} {}: votingStrategy is null", [
-      "QF",
-      votingStrategyAddress.toHex()
-    ]);
+    log.warning(
+      "--> handleVotingContractCreated {} {}: votingStrategy is null",
+      ["QF", votingStrategyAddress.toHex()]
+    );
     return;
   }
 
@@ -44,7 +47,7 @@ export function handleVote(event: VotedEvent): void {
   // create QFVote entity
   const voteID = generateID([
     event.transaction.hash.toHex(),
-    event.params.grantAddress.toHex()
+    event.params.grantAddress.toHex(),
   ]);
   const vote = new QFVote(voteID);
 
@@ -54,6 +57,8 @@ export function handleVote(event: VotedEvent): void {
   vote.from = event.params.voter.toHex();
   vote.to = event.params.grantAddress.toHex();
   vote.projectId = event.params.projectId.toHex();
+  vote.round = event.params.roundAddress.toHex();
+
 
   // set timestamp
   vote.createdAt = event.block.timestamp;
@@ -61,18 +66,28 @@ export function handleVote(event: VotedEvent): void {
   vote.version = VERSION;
 
   vote.save();
-
-  let quadraticTipping = QuadraticTipping.load(votingStrategy.round!);
-
-  if (!quadraticTipping) {
-    log.warning("quadraticTipping {}", [
-      votingStrategy.round!
-    ]);
+  
+  if (!votingStrategy || !votingStrategy.round) {
+    log.warning("votingStrategy or votingStrategy.round is null", []);
     return;
   }
+
+  let quadraticTipping = QuadraticTipping.load(event.params.roundAddress.toHex());
+
+  if (!quadraticTipping) {
+    quadraticTipping = new QuadraticTipping(event.params.roundAddress.toHex());
+    quadraticTipping.round = event.params.roundAddress.toHex();
+    quadraticTipping.matchAmount = BigInt.fromI32(0);
+    quadraticTipping.votes = [];
+    quadraticTipping.distributions = [];
+    quadraticTipping.batchPayoutCompleted = false;
+    quadraticTipping.readyForPayout = false;
+
+    quadraticTipping.save();
+  }
+
   let roundVotes = quadraticTipping.votes;
   roundVotes.push(vote.id);
   quadraticTipping.votes = roundVotes;
   quadraticTipping.save();
-
 }

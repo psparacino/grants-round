@@ -2,7 +2,6 @@ import {
   FundsDistributed as FundsDistributedEvent,
   ReadyForPayout as ReadyForPayoutEvent,
   BatchPayoutSuccessful as BatchPayoutSuccessfulEvent,
-  ReadyForPayout,
 } from "../../generated/MerklePayoutStrategyFactory/MerklePayoutStrategyImplementation";
 import {
   QuadraticTipping,
@@ -53,7 +52,6 @@ export function handleBatchPayoutSuccessful(
 }
 
 export function handleFundsDistributed(event: FundsDistributedEvent): void {
-
   const payoutContractAddress = event.address;
 
   const payoutContract = MerklePayoutStrategyImplementation.bind(
@@ -62,7 +60,6 @@ export function handleFundsDistributed(event: FundsDistributedEvent): void {
 
   const roundAddress = payoutContract.roundAddress();
 
-
   const quadraticTippingDistribution = QuadraticTippingDistribution.load(
     roundAddress.toHex()
   );
@@ -70,7 +67,7 @@ export function handleFundsDistributed(event: FundsDistributedEvent): void {
     log.warning("no quadraticTippingDistribution found", []);
     return;
   }
-  
+
   quadraticTippingDistribution.amount = event.params.amount;
   quadraticTippingDistribution.round = roundAddress.toHex();
   quadraticTippingDistribution.address = event.params.grantee.toString();

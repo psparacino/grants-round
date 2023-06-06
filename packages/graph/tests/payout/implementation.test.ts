@@ -6,7 +6,6 @@ import {
   afterAll,
   beforeAll,
   clearStore,
-  afterEach,
   assert,
   createMockedFunction,
 } from "matchstick-as/assembly/index";
@@ -31,7 +30,7 @@ const roundContractAddress: Address = Address.fromString(
   "0x61ca4EB8a3aACA536c27172c96a453a5a7e47C55"
 );
 
-describe("MerkleStrategyImplemenation Tests", () => {
+describe("MerkleStrategyImplementation Tests", () => {
   beforeAll(() => {
     createMockedFunction(
       roundContractAddress,

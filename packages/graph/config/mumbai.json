@@ -1,6 +1,6 @@
 {
   "network": "mumbai",
-  "startBlock": 31402729,
+  "startBlock": 36393440,
   "programFactoryAddress": "0xcc19871C2DaFF31dC1A7add1240B6819A8F4E544",
   "QFVotingStrategyFactoryAddress": "0xA86837773d8167C20f648Fcc11dB7eA4B95B4b7A",
   "QFRelayStrategyFactoryAddress": "0xBcC6f8AeCCd46b941A3A0BFd5eC3E0155Bcb78ba",

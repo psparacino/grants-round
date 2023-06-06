@@ -109,30 +109,30 @@ dataSources:
           handler: handleVotingContractCreated
       file: ./src/votingStrategy/QuadraticFundingRelay/factory.ts
   
-  # # MerklePayoutStrategyFactory
-  # - kind: ethereum/contract
-  #   name: MerklePayoutStrategyFactory
-  #   network: {{ network }}
-  #   source:
-  #     address: '{{ merklePayoutStrategyFactoryAddress }}'
-  #     abi: MerklePayoutStrategyFactory
-  #     startBlock: {{ startBlock }}
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - QuadraticTipping
-  #       - QuadraticTippingDistribution
-  #     abis:
-  #       - name: MerklePayoutStrategyFactory
-  #         file: ./abis/MerklePayoutStrategyFactory.json
-  #       - name: MerklePayoutStrategyImplementation
-  #         file: ./abis/MerklePayoutStrategyImplementation.json
-  #     eventHandlers:
-  #       - event: PayoutContractCreated(indexed address,indexed address)
-  #         handler: handlePayoutContractCreated
-  #     file: ./src/payout/factory.ts
+  # MerklePayoutStrategyFactory
+  - kind: ethereum/contract
+    name: MerklePayoutStrategyFactory
+    network: {{ network }}
+    source:
+      address: '{{ merklePayoutStrategyFactoryAddress }}'
+      abi: MerklePayoutStrategyFactory
+      startBlock: {{ startBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - QuadraticTipping
+        - QuadraticTippingDistribution
+      abis:
+        - name: MerklePayoutStrategyFactory
+          file: ./abis/MerklePayoutStrategyFactory.json
+        - name: MerklePayoutStrategyImplementation
+          file: ./abis/MerklePayoutStrategyImplementation.json
+      eventHandlers:
+        - event: PayoutContractCreated(indexed address,indexed address)
+          handler: handlePayoutContractCreated
+      file: ./src/payout/factory.ts
 
 templates:
   # ProgramImplementation AccessControl
