@@ -124,7 +124,9 @@ export const useRoundMatchData = (chainId: string, roundId: string) => {
           setError(data.message);
         }
         setLoading(false);
-        setRefetching(false);
+        if (refetching) {
+          setRefetching(false);
+        }
       });
   }, [chainId, roundId, refetching]);
   return {

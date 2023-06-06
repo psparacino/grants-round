@@ -221,18 +221,22 @@ const _createRound = async ({
         signerOrProvider
       );
 
+    if (!roundAddress) {
+      throw new Error("Round address is undefined");
+    }
+
     await handleTransferFundsToRound(
       setRoundTransferFundsStatus,
       roundMetadataWithProgramContractAddress?.matchingFunds
         ?.matchingFundsAvailable || 0,
-      roundAddress!,
+      roundAddress,
       round.token,
       signerOrProvider
     );
 
     await handleUpdateRoundMatchAmount(
       setRoundUpdateMatchAmountStatus,
-      roundAddress!,
+      roundAddress,
       roundMetadataWithProgramContractAddress?.matchingFunds
         ?.matchingFundsAvailable || 0,
       signerOrProvider

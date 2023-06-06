@@ -212,12 +212,12 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
     setCurrentStep(currentStep + 1);
   };
 
-  const now = moment().add(1, "hour").startOf("hour");
+  // const now = moment().add(1, "hour").startOf("hour");
   const prev = () => setCurrentStep(currentStep - 1);
-  const yesterday = moment().subtract(1, "day");
-  const disablePastDate = (current: moment.Moment) => {
-    return current.isAfter(yesterday);
-  };
+  // const yesterday = moment().subtract(1, "day");
+  // const disablePastDate = (current: moment.Moment) => {
+  //   return current.isAfter(yesterday);
+  // };
 
   function disableBeforeApplicationStartDate(current: moment.Moment) {
     return current.isAfter(applicationStartDate);
