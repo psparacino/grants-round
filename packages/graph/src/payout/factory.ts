@@ -14,21 +14,5 @@ export function handlePayoutContractCreated(
   event: PayoutContractCreatedEvent
 ): void {
   const payoutContractAddress = event.params.payoutContractAddress;
-
-  // const payoutContract = ImplementationContract.bind(payoutContractAddress);
-  // const roundAddress = payoutContract.roundAddress();
-
-  // const quadraticTipping = QuadraticTipping.load(roundAddress.toHex());
-  // if (quadraticTipping == null) {
-  //   const quadraticTipping = new QuadraticTipping(roundAddress.toHex());
-  //   quadraticTipping.matchAmount = BigInt.fromI32(1);
-  //   quadraticTipping.round = payoutContractAddress.toHex();
-  //   quadraticTipping.readyForPayout = false;
-  //   quadraticTipping.batchPayoutCompleted = false;
-  //   quadraticTipping.distributions = [];
-  //   quadraticTipping.votes = [];
-  //   quadraticTipping.save();
-  // }
-
   MerklePayoutStrategyImplementation.create(payoutContractAddress);
 }

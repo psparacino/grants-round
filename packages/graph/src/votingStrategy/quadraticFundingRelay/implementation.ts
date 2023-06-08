@@ -18,6 +18,7 @@ export function handleVote(event: VotedEvent): void {
   const votingStrategyAddress = event.address;
   let votingStrategy = VotingStrategy.load(votingStrategyAddress.toHex());
 
+
   if (!votingStrategy) {
     log.warning(
       "--> handleVotingContractCreated {} {}: votingStrategy is null",
@@ -56,9 +57,8 @@ export function handleVote(event: VotedEvent): void {
   vote.amount = event.params.amount;
   vote.from = event.params.voter.toHex();
   vote.to = event.params.grantAddress.toHex();
-  vote.projectId = event.params.projectId.toHex();
+  vote.projectId = event.params.projectId.toHexString();
   vote.round = event.params.roundAddress.toHex();
-
 
   // set timestamp
   vote.createdAt = event.block.timestamp;
@@ -66,13 +66,15 @@ export function handleVote(event: VotedEvent): void {
   vote.version = VERSION;
 
   vote.save();
-  
+
   if (!votingStrategy || !votingStrategy.round) {
     log.warning("votingStrategy or votingStrategy.round is null", []);
-    return;
+
   }
 
-  let quadraticTipping = QuadraticTipping.load(event.params.roundAddress.toHex());
+  let quadraticTipping = QuadraticTipping.load(
+    event.params.roundAddress.toHex()
+  );
 
   if (!quadraticTipping) {
     quadraticTipping = new QuadraticTipping(event.params.roundAddress.toHex());

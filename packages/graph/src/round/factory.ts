@@ -96,10 +96,12 @@ export function handleRoundCreated(event: RoundCreatedEvent): void {
 
   // Initialize Quadratic Tipping
   let quadraticTipping = QuadraticTipping.load(roundContractAddress.toHex());
-  if (quadraticTipping == null) {
+
+  if (!quadraticTipping) {
     let quadraticTipping: QuadraticTipping = new QuadraticTipping(
       roundContractAddress.toHex()
     );
+
     quadraticTipping.id = round.id;
     quadraticTipping.round = round.id;
     quadraticTipping.matchAmount = BigInt.fromI32(0);
@@ -109,6 +111,7 @@ export function handleRoundCreated(event: RoundCreatedEvent): void {
     quadraticTipping.readyForPayout = false;
     quadraticTipping.save();
   }
+
   let quadraticTippingDistribution: QuadraticTippingDistribution =
     new QuadraticTippingDistribution(roundContractAddress.toHex());
   quadraticTippingDistribution.id = round.id;

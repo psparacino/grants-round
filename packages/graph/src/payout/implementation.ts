@@ -70,9 +70,9 @@ export function handleFundsDistributed(event: FundsDistributedEvent): void {
 
   quadraticTippingDistribution.amount = event.params.amount;
   quadraticTippingDistribution.round = roundAddress.toHex();
-  quadraticTippingDistribution.address = event.params.grantee.toString();
-  quadraticTippingDistribution.projectId = event.params.projectId.toString();
-  quadraticTippingDistribution.token = event.params.token.toString();
+  quadraticTippingDistribution.address = event.params.grantee.toHex();
+  quadraticTippingDistribution.projectId = event.params.projectId.toHexString();
+  quadraticTippingDistribution.token = event.params.token.toHex();
   quadraticTippingDistribution.save();
 
   const quadraticTipping = QuadraticTipping.load(roundAddress.toHex());
