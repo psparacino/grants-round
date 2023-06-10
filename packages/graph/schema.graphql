@@ -133,9 +133,9 @@ type QuadraticTipping @entity {
   round: Round! 
   matchAmount: BigInt!
   votes: [QFVote!]!
-  distributions: [QuadraticTippingDistribution!]!
-  readyForPayout: Boolean!
+  distributions: [QuadraticTippingDistribution!]! 
   batchPayoutCompleted: Boolean!
+  readyForPayout: Boolean!
 }
 
 ########################

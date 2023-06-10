@@ -111,7 +111,6 @@ export function handleRoundCreated(event: RoundCreatedEvent): void {
     quadraticTipping.readyForPayout = false;
     quadraticTipping.save();
   }
-
   let quadraticTippingDistribution: QuadraticTippingDistribution =
     new QuadraticTippingDistribution(roundContractAddress.toHex());
   quadraticTippingDistribution.id = round.id;
@@ -125,8 +124,6 @@ export function handleRoundCreated(event: RoundCreatedEvent): void {
   // set timestamp
   round.createdAt = event.block.timestamp;
   round.updatedAt = event.block.timestamp;
-
   round.save();
-
   RoundImplementation.create(roundContractAddress);
 }

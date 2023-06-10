@@ -227,7 +227,7 @@ templates:
           file: ./abis/QuadraticFundingRelayStrategyImplementation.json
       eventHandlers:
         - event: Voted(address,uint256,indexed address,address,indexed bytes32,indexed address)
-          handler: handleVote
+          handler: handleRelayVote
           receipt: true
 
       file: ./src/votingStrategy/quadraticFundingRelay/implementation.ts

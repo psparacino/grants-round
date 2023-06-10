@@ -13,11 +13,12 @@ const VERSION = "0.1.0";
  * @dev Handles indexing on Voted event.
  * @param event VotedEvent
  */
-export function handleVote(event: VotedEvent): void {
+export function handleRelayVote(event: VotedEvent): void {
+
   // load voting strategy contract
   const votingStrategyAddress = event.address;
-  let votingStrategy = VotingStrategy.load(votingStrategyAddress.toHex());
 
+  let votingStrategy = VotingStrategy.load(votingStrategyAddress.toHex());
 
   if (!votingStrategy) {
     log.warning(
@@ -67,16 +68,21 @@ export function handleVote(event: VotedEvent): void {
 
   vote.save();
 
-  if (!votingStrategy || !votingStrategy.round) {
-    log.warning("votingStrategy or votingStrategy.round is null", []);
+  // if (!votingStrategy || !votingStrategy.round) {
+  //   log.warning("votingStrategy or votingStrategy.round is null", []);
 
-  }
+  // }
 
   let quadraticTipping = QuadraticTipping.load(
     event.params.roundAddress.toHex()
   );
+  if (quadraticTipping) {
+    log.info("quadraticTipping entity found: {}", [quadraticTipping.id]);
+  }
+  let newVote = QFVote.load(voteID);
 
   if (!quadraticTipping) {
+    log.info("creating quadraticTipping entity: {}", [event.params.roundAddress.toHex()]);
     quadraticTipping = new QuadraticTipping(event.params.roundAddress.toHex());
     quadraticTipping.round = event.params.roundAddress.toHex();
     quadraticTipping.matchAmount = BigInt.fromI32(0);
@@ -84,12 +90,14 @@ export function handleVote(event: VotedEvent): void {
     quadraticTipping.distributions = [];
     quadraticTipping.batchPayoutCompleted = false;
     quadraticTipping.readyForPayout = false;
+  }
+  if (newVote) {
+    log.info("newVote: {}", [newVote.id]);
 
+    let roundVotes = quadraticTipping.votes;
+    roundVotes.push(newVote.id);
+
+    quadraticTipping.votes = roundVotes;
     quadraticTipping.save();
   }
-
-  let roundVotes = quadraticTipping.votes;
-  roundVotes.push(vote.id);
-  quadraticTipping.votes = roundVotes;
-  quadraticTipping.save();
 }
