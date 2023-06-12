@@ -8,7 +8,6 @@ import "../utils/MetaPtr.sol";
 import "./ProgramImplementation.sol";
 
 contract ProgramFactory is OwnableUpgradeable {
- 
   address public programContract;
 
   // --- Event ---
@@ -49,7 +48,6 @@ contract ProgramFactory is OwnableUpgradeable {
   function create(
     bytes calldata encodedParameters
   ) external returns (address) {
-
     address clone = ClonesUpgradeable.clone(programContract);
     emit ProgramCreated(clone, programContract);
     ProgramImplementation(clone).initialize(encodedParameters);
