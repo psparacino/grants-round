@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "../utils/MetaPtr.sol";
 
 import "../round/RoundImplementation.sol";
+
 /**
  * @notice Defines the abstract contract for payout strategies
  * for a round. Any new payout strategy would be expected to
@@ -80,7 +81,7 @@ abstract contract IPayoutStrategy {
    *
    */
   function init() external {
-    require(roundAddress == address(0x0), "roundAddress already set");
+    require(roundAddress == address(0x0), "Payout: roundAddress already set");
     roundAddress = payable(msg.sender);
 
     // set the token address

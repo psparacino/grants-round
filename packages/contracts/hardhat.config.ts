@@ -13,6 +13,7 @@ import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "hardhat-abi-exporter";
 
+// eslint-disable-next-line node/no-missing-import
 import "./tasks";
 
 dotenv.config();

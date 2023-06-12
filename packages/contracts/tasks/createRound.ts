@@ -11,11 +11,8 @@ import POLYGON from "../deployments/deployments-polygon.json";
 import MUMBAI from "../deployments/deployments-polygon-mumbai.json";
 import LOCALHOST from "../deployments/deployments-localhost.json";
 
-import ProgramFactoryAbi from "../artifacts/contracts/program/ProgramFactory.sol/ProgramFactory.json";
-import RoundFactoryAbi from "../artifacts/contracts/round/RoundFactory.sol/RoundFactory.json";
-import QuadraticFundingRelayStrategyFactoryAbi from "../artifacts/contracts/votingStrategy/QuadraticFundingRelayStrategy/QuadraticFundingRelayStrategyFactory.sol/QuadraticFundingRelayStrategyFactory.json";
-import MerklePayoutStrategyFactoryAbi from "../artifacts/contracts/payoutStrategy/MerklePayoutStrategy/MerklePayoutStrategyFactory.sol/MerklePayoutStrategyFactory.json";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
+import { latest, latestBlock } from "@nomicfoundation/hardhat-network-helpers/dist/src/helpers/time";
 
 type Contracts =
   | "ProgramFactory"
@@ -69,11 +66,11 @@ task("createRound", "Create a new Round")
         programOperators = operators;
       }
       console.log("NETWORK");
-      if (hre.network.name == "polygon-mainnet") {
+      if (hre.network.name === "polygon-mainnet") {
         addresses = POLYGON;
-      } else if (hre.network.name == "polygon-mumbai") {
+      } else if (hre.network.name === "polygon-mumbai") {
         addresses = MUMBAI;
-      } else if (hre.network.name == "localhost") {
+      } else if (hre.network.name === "localhost") {
         addresses = LOCALHOST;
       } else {
         addresses = MUMBAI;
@@ -86,21 +83,21 @@ task("createRound", "Create a new Round")
       };
 
       const contracts: Record<Contracts, Contract> = {
-        ProgramFactory: new ethers.Contract(
-          addresses.ProgramFactory,
-          ProgramFactoryAbi.abi
+        ProgramFactory: await ethers.getContractAt(
+          "ProgramFactory",
+          addresses.ProgramFactory
         ),
-        RoundFactory: new ethers.Contract(
-          addresses.RoundFactory,
-          RoundFactoryAbi.abi
+        RoundFactory: await ethers.getContractAt(
+          "RoundFactory",
+          addresses.RoundFactory
         ),
-        QuadraticFundingRelayStrategyFactory: new ethers.Contract(
-          addresses.QuadraticFundingRelayStrategyFactory,
-          QuadraticFundingRelayStrategyFactoryAbi.abi
+        QuadraticFundingRelayStrategyFactory: await ethers.getContractAt(
+          "QuadraticFundingRelayStrategyFactory",
+          addresses.QuadraticFundingRelayStrategyFactory
         ),
-        MerklePayoutStrategyFactory: new ethers.Contract(
-          addresses.MerklePayoutStrategyFactory,
-          MerklePayoutStrategyFactoryAbi.abi
+        MerklePayoutStrategyFactory: await ethers.getContractAt(
+          "MerklePayoutStrategyFactory",
+          addresses.MerklePayoutStrategyFactory
         ),
       };
       const deployments: Record<string, string> = {
@@ -109,8 +106,9 @@ task("createRound", "Create a new Round")
         QuadraticFundingRelayStrategyContract: "",
         MerklePayoutStrategyContract: "",
       };
+
       // clone program
-      console.log("LACALHOST");
+
       try {
         if (!addresses.ProgramFactory) {
           throw new Error("Missing programFactory address");
@@ -224,14 +222,16 @@ task("createRound", "Create a new Round")
             (e) => e.event === "PayoutContractCreated"
           );
           if (event && event.args) {
+            console.log("EVENT ARGS: ", event.args);
             deployments.MerklePayoutStrategyContract =
-              event.args.payoutImplementation;
+              event.args.payoutContractAddress;
           }
           if (!event) {
             const event = receipt.events.find((e) => e.event === "Initialized");
             deployments.MerklePayoutStrategyContract = event?.address;
           }
         }
+
         console.log("✅ Txn hash: " + receipt.hash);
         console.log(
           "✅ Merkle Payout Contract Created: ",
@@ -279,15 +279,17 @@ task("createRound", "Create a new Round")
         if (hre.network.name === "localHost") {
           currentTimestamp = await time.latest();
         } else {
-          const block = await ethers.provider.getBlock(
-            await ethers.provider.getBlockNumber()
-          );
+          const blockNumber = await hre.ethers.provider.getBlockNumber();
+          const block = await hre.ethers.provider.getBlock(blockNumber);
           currentTimestamp = block.timestamp;
         }
-        const applicationsStartTime = currentTimestamp + 10; // 1 second later
-        const applicationsEndTime = currentTimestamp + 20; // 2 seconds later
-        const roundStartTime = currentTimestamp + 50; // 1 hour later
-        const roundEndTime = currentTimestamp + 100; // 1 day later
+        if (!currentTimestamp) {
+          throw new Error("Error: Timestamp not retreived.");
+        }
+        const applicationsStartTime = currentTimestamp + 10; // 10 second later
+        const applicationsEndTime = currentTimestamp + 20; // 20 seconds later
+        const roundStartTime = currentTimestamp + 600; // 10 minutes later
+        const roundEndTime = currentTimestamp + 86400; // 1 day later
 
         const params = [
           deployments.QuadraticFundingRelayStrategyContract, // votingStrategyAddress

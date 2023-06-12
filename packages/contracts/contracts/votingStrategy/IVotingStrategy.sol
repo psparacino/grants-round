@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.17;
-
 /**
  * @notice Defines the abstract contract for voting algorithms on grants
  * within a round. Any new voting algorithm would be expected to
