@@ -13,7 +13,11 @@ import { useNavigate } from "react-router-dom";
 import InfoModal from "../common/InfoModal";
 import ProgressModal from "../common/ProgressModal";
 import ErrorModal from "../common/ErrorModal";
-import { useRoundMatchData } from "../api/api";
+import {
+  QFDistribution,
+  updateRoundMatchData,
+  useRoundMatchData,
+} from "../api/api";
 import { Button } from "../common/styles";
 import { saveObjectAsJson } from "../api/utils";
 import { RadioGroup } from "@headlessui/react";
@@ -39,39 +43,20 @@ export default function ViewFundingAdmin(props: {
 
   return (
     <div>
-      {isBeforeRoundEndDate && <NoInformationContent />}
-      {isAfterRoundEndDate && (
-        <InformationContent
-          round={props.round}
-          chainId={props.chainId}
-          roundId={props.roundId}
-        />
+      {isBeforeRoundEndDate && (
+        <div className="mt-4 mb-4 p-4 bg-red-50 text-red-600 text-xl">
+          ! Round has not finished yet !
+        </div>
       )}
+      {/*{isAfterRoundEndDate && (*/}
+      <InformationContent
+        finalizeEnabled={!!isAfterRoundEndDate}
+        round={props.round}
+        chainId={props.chainId}
+        roundId={props.roundId}
+      />
+      {/*)}*/}
     </div>
-  );
-}
-
-function NoInformationContent() {
-  return (
-    <div className="flex flex-center flex-col mx-auto h-screen items-center text-center mt-32">
-      <div className="flex flex-center justify-center items-center bg-grey-150 rounded-full h-12 w-12 text-violet-400">
-        <NoInformationIcon className="w-6 h-6" />
-      </div>
-      <NoInformationMessage />
-    </div>
-  );
-}
-
-function NoInformationMessage() {
-  return (
-    <>
-      <h2 className="mt-8 text-2xl antialiased">No Information Available</h2>
-      <div className="mt-2 text-sm">Your round has not ended yet.</div>
-      <div className="text-sm">
-        Final matching fund percentage will be available once the round has
-        finalized.
-      </div>
-    </>
   );
 }
 
@@ -79,12 +64,14 @@ function InformationContent(props: {
   round: Round | undefined;
   chainId: string;
   roundId: string | undefined;
+  finalizeEnabled: boolean;
 }) {
   const [useDefault, setUseDefault] = useState(true);
   const [customMatchingData, setCustomMatchingData] = useState<
     MatchingStatsData[] | undefined
   >();
   const [useContractData, setUseContractData] = useState(true);
+  const [updatingMatchData, setUpdatingMatchData] = useState(false);
 
   const {
     distributionMetaPtr,
@@ -101,12 +88,23 @@ function InformationContent(props: {
     }
   }, [distributionMetaPtr, matchingDistributionContract]);
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const { data, error, loading } = useRoundMatchData(
+  const { data, error, loading, refetch: refetchMatchingData } = useRoundMatchData(
     props.chainId,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     props.roundId!
   );
+
+  const onUpdateMatchData = async () => {
+    setUpdatingMatchData(true);
+    await updateRoundMatchData(
+      props.chainId,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      props.roundId!
+    );
+    refetchMatchingData();
+    setUpdatingMatchData(false);
+  };
+
   const matchingData: MatchingStatsData[] | undefined = data?.map((data) => {
     const project = props.round?.approvedProjects?.filter(
       (project) =>
@@ -123,13 +121,19 @@ function InformationContent(props: {
   });
   return (
     <>
+      <Button
+        className={"bg-gray-200 hover:bg-gray-300 text-gray-900"}
+        onClick={onUpdateMatchData}
+      >
+        Update matching stats
+      </Button>
       <div>
-        {(loading || isLoading) && (
+        {(loading || isLoading || updatingMatchData) && (
           <Spinner text="We're fetching the matching data." />
         )}
-        {(error || isError) && <ErrorMessage />}
+        {(error || isError) && !updatingMatchData && <ErrorMessage />}
       </div>
-      {!error && !isError && !loading && !isLoading && (
+      {!error && !isError && !loading && !isLoading && !updatingMatchData && (
         <FinalizeRound
           roundId={props.roundId}
           matchingData={matchingData}
@@ -140,6 +144,9 @@ function InformationContent(props: {
           useContractData={useContractData}
           setUseContractData={setUseContractData}
           matchingDistributionContract={matchingDistributionContract}
+          saveToContractDisabled={false && !props.finalizeEnabled}
+          distribution={data || []}
+          onUpdateMatchData={onUpdateMatchData}
         />
       )}
     </>
@@ -267,24 +274,40 @@ function FinalizeRound(props: {
   useContractData: boolean;
   setUseContractData: (useContractData: boolean) => void;
   matchingDistributionContract: MatchingStatsData[] | undefined;
+  saveToContractDisabled: boolean;
+  distribution: QFDistribution[];
+  onUpdateMatchData: () => Promise<void>;
 }) {
   const [openInfoModal, setOpenInfoModal] = useState(false);
   const [openProgressModal, setOpenProgressModal] = useState(false);
   const [openErrorModal, setOpenErrorModal] = useState(false);
   const navigate = useNavigate();
 
-  const { finalizeRound, IPFSCurrentStatus, finalizeRoundToContractStatus } =
-    useFinalizeRound();
+  const {
+    finalizeRound,
+    IPFSCurrentStatus,
+    finalizeRoundToContractStatus,
+    readyForPayoutStatus,
+    payoutStatus,
+  } = useFinalizeRound();
 
   useEffect(() => {
     if (
       IPFSCurrentStatus === ProgressStatus.IS_SUCCESS &&
-      finalizeRoundToContractStatus === ProgressStatus.IS_SUCCESS
+      finalizeRoundToContractStatus === ProgressStatus.IS_SUCCESS &&
+      readyForPayoutStatus === ProgressStatus.IS_SUCCESS &&
+      payoutStatus === ProgressStatus.IS_SUCCESS
     ) {
       // redirectToFinalizedRoundStats(navigate, 2000);
       console.log("success");
     }
-  }, [navigate, IPFSCurrentStatus, finalizeRoundToContractStatus]);
+  }, [
+    navigate,
+    IPFSCurrentStatus,
+    finalizeRoundToContractStatus,
+    payoutStatus,
+    readyForPayoutStatus,
+  ]);
 
   useEffect(() => {
     if (
@@ -304,7 +327,8 @@ function FinalizeRound(props: {
         setOpenProgressModal(true);
         await finalizeRound(
           props.roundId,
-          props.useDefault ? props.matchingData : props.customMatchingData
+          props.useDefault ? props.matchingData : props.customMatchingData,
+          props.distribution
         );
       }
     } catch (error) {
@@ -324,10 +348,20 @@ function FinalizeRound(props: {
       status: finalizeRoundToContractStatus,
     },
     {
+      name: "Set ready for payout",
+      description: "The contract is being set ready for payout",
+      status: readyForPayoutStatus,
+    },
+    {
+      name: "Payout",
+      description: "The payout is being processed.",
+      status: payoutStatus,
+    },
+    {
       name: "Redirecting",
       description: "Just another moment while we finish things up.",
       status:
-        finalizeRoundToContractStatus === ProgressStatus.IS_SUCCESS
+        payoutStatus === ProgressStatus.IS_SUCCESS
           ? ProgressStatus.IN_PROGRESS
           : ProgressStatus.NOT_STARTED,
     },
@@ -386,7 +420,10 @@ function FinalizeRound(props: {
                       onClick={() => setOpenInfoModal(true)}
                       type="submit"
                       className="my-5 w-full flex justify-center tracking-wide focus:outline-none focus:shadow-outline shadow-lg cursor-pointer"
-                      disabled={!props.useDefault && !props.customMatchingData}
+                      disabled={
+                        (!props.useDefault && !props.customMatchingData) ||
+                        props.saveToContractDisabled
+                      }
                     >
                       Finalize and save to contract
                     </Button>
@@ -535,7 +572,7 @@ function UploadJSON(props: {
         data-testid="dropzone"
       >
         <label className="flex flex-col rounded-lg border-4 border-dashed w-full h-42 p-10 group text-center">
-          <div className="h-full w-full text-center flex flex-col items-center justify-center items-center  ">
+          <div className="h-full w-full text-center flex flex-col items-center justify-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"

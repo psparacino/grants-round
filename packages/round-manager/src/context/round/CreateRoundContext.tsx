@@ -12,7 +12,11 @@ import React, {
 } from "react";
 import { saveToIPFS } from "../../features/api/ipfs";
 import { useWallet } from "../../features/common/Auth";
-import { deployRoundContract } from "../../features/api/round";
+import {
+  deployRoundContract,
+  transferFundsToRound,
+  updateRoundMatchAmount,
+} from "../../features/api/round";
 import { waitForSubgraphSyncTo } from "../../features/api/subgraph";
 import { SchemaQuestion } from "../../features/api/utils";
 import { datadogLogs } from "@datadog/browser-logs";
@@ -20,6 +24,7 @@ import { Signer } from "@ethersproject/abstract-signer";
 import { deployQFVotingContract } from "../../features/api/votingStrategy/qfVotingStrategy";
 import { deployQFRelayContract } from "../../features/api/votingStrategy/qfRelayStrategy";
 import { deployMerklePayoutStrategyContract } from "../../features/api/payoutStrategy/merklePayoutStrategy";
+import { updateDefenderSentinel } from "../../features/api/defender";
 
 type SetStatusFn = React.Dispatch<SetStateAction<ProgressStatus>>;
 
@@ -32,6 +37,12 @@ export interface CreateRoundState {
   setPayoutContractDeploymentStatus: SetStatusFn;
   roundContractDeploymentStatus: ProgressStatus;
   setRoundContractDeploymentStatus: SetStatusFn;
+  roundTransferFundsStatus: ProgressStatus;
+  setRoundTransferFundsStatus: SetStatusFn;
+  roundUpdateMatchAmountStatus: ProgressStatus;
+  setRoundUpdateMatchAmountStatus: SetStatusFn;
+  defenderUpdateSentinelStatus: ProgressStatus;
+  setDefenderUpdateSentinelStatus: SetStatusFn;
   indexingStatus: ProgressStatus;
   setIndexingStatus: SetStatusFn;
 }
@@ -63,6 +74,18 @@ export const initialCreateRoundState: CreateRoundState = {
   setRoundContractDeploymentStatus: () => {
     /* provided in CreateRoundProvider */
   },
+  roundTransferFundsStatus: ProgressStatus.NOT_STARTED,
+  setRoundTransferFundsStatus: () => {
+    /* provided in CreateRoundProvider */
+  },
+  roundUpdateMatchAmountStatus: ProgressStatus.NOT_STARTED,
+  setRoundUpdateMatchAmountStatus: () => {
+    /* provided in CreateRoundProvider */
+  },
+  defenderUpdateSentinelStatus: ProgressStatus.NOT_STARTED,
+  setDefenderUpdateSentinelStatus: () => {
+    /* provided in CreateRoundProvider */
+  },
   indexingStatus: ProgressStatus.NOT_STARTED,
   setIndexingStatus: () => {
     /* provided in CreateRoundProvider */
@@ -87,6 +110,13 @@ export const CreateRoundProvider = ({
     useState(initialCreateRoundState.payoutContractDeploymentStatus);
   const [roundContractDeploymentStatus, setRoundContractDeploymentStatus] =
     useState(initialCreateRoundState.roundContractDeploymentStatus);
+  const [roundTransferFundsStatus, setRoundTransferFundsStatus] = useState(
+    initialCreateRoundState.roundTransferFundsStatus
+  );
+  const [roundUpdateMatchAmountStatus, setRoundUpdateMatchAmountStatus] =
+    useState(initialCreateRoundState.roundUpdateMatchAmountStatus);
+  const [defenderUpdateSentinelStatus, setDefenderUpdateSentinelStatus] =
+    useState(initialCreateRoundState.defenderUpdateSentinelStatus);
   const [indexingStatus, setIndexingStatus] = useState(
     initialCreateRoundState.indexingStatus
   );
@@ -100,6 +130,12 @@ export const CreateRoundProvider = ({
     setPayoutContractDeploymentStatus,
     roundContractDeploymentStatus,
     setRoundContractDeploymentStatus,
+    roundTransferFundsStatus,
+    setRoundTransferFundsStatus,
+    roundUpdateMatchAmountStatus,
+    setRoundUpdateMatchAmountStatus,
+    defenderUpdateSentinelStatus,
+    setDefenderUpdateSentinelStatus,
     indexingStatus,
     setIndexingStatus,
   };
@@ -127,6 +163,9 @@ const _createRound = async ({
     setVotingContractDeploymentStatus,
     setPayoutContractDeploymentStatus,
     setRoundContractDeploymentStatus,
+    setRoundTransferFundsStatus,
+    setRoundUpdateMatchAmountStatus,
+    setDefenderUpdateSentinelStatus,
     setIndexingStatus,
   } = context;
   const {
@@ -174,10 +213,37 @@ const _createRound = async ({
       payoutStrategy: payoutContractAddress,
     };
 
-    const transactionBlockNumber = await handleDeployRoundContract(
-      setRoundContractDeploymentStatus,
-      roundContractInputsWithContracts,
+    const { roundAddress, transactionBlockNumber } =
+      await handleDeployRoundContract(
+        setRoundContractDeploymentStatus,
+        roundContractInputsWithContracts,
+        signerOrProvider
+      );
+
+    if (!roundAddress) {
+      throw new Error("Round address is undefined");
+    }
+
+    await handleTransferFundsToRound(
+      setRoundTransferFundsStatus,
+      roundMetadataWithProgramContractAddress?.matchingFunds
+        ?.matchingFundsAvailable || 0,
+      roundAddress,
+      round.token,
       signerOrProvider
+    );
+
+    await handleUpdateRoundMatchAmount(
+      setRoundUpdateMatchAmountStatus,
+      roundAddress,
+      roundMetadataWithProgramContractAddress?.matchingFunds
+        ?.matchingFundsAvailable || 0,
+      signerOrProvider
+    );
+
+    await handleUpdateDefenderSentinel(
+      setDefenderUpdateSentinelStatus,
+      votingContractAddress
     );
 
     await waitForSubgraphToUpdate(
@@ -205,6 +271,8 @@ export const useCreateRound = () => {
     setVotingContractDeploymentStatus,
     setPayoutContractDeploymentStatus,
     setRoundContractDeploymentStatus,
+    setRoundTransferFundsStatus,
+    setRoundUpdateMatchAmountStatus,
     setIndexingStatus,
   } = context;
   const { signer: walletSigner } = useWallet();
@@ -215,6 +283,8 @@ export const useCreateRound = () => {
       setVotingContractDeploymentStatus,
       setPayoutContractDeploymentStatus,
       setRoundContractDeploymentStatus,
+      setRoundTransferFundsStatus,
+      setRoundUpdateMatchAmountStatus,
       setIndexingStatus
     );
 
@@ -231,6 +301,9 @@ export const useCreateRound = () => {
     votingContractDeploymentStatus: context.votingContractDeploymentStatus,
     payoutContractDeploymentStatus: context.payoutContractDeploymentStatus,
     roundContractDeploymentStatus: context.roundContractDeploymentStatus,
+    roundTransferFundsStatus: context.roundTransferFundsStatus,
+    roundUpdateMatchAmountStatus: context.roundUpdateMatchAmountStatus,
+    defenderUpdateSentinelStatus: context.defenderUpdateSentinelStatus,
     indexingStatus: context.indexingStatus,
   };
 };
@@ -240,6 +313,8 @@ function resetToInitialState(
   setVotingDeployingStatus: SetStatusFn,
   setPayoutDeployingStatus: SetStatusFn,
   setDeployingStatus: SetStatusFn,
+  setRoundTransferFundsStatus: SetStatusFn,
+  setRoundUpdateMatchStatus: SetStatusFn,
   setIndexingStatus: SetStatusFn
 ): void {
   setStoringStatus(initialCreateRoundState.IPFSCurrentStatus);
@@ -250,6 +325,10 @@ function resetToInitialState(
     initialCreateRoundState.payoutContractDeploymentStatus
   );
   setDeployingStatus(initialCreateRoundState.roundContractDeploymentStatus);
+  setRoundTransferFundsStatus(initialCreateRoundState.roundTransferFundsStatus);
+  setRoundUpdateMatchStatus(
+    initialCreateRoundState.roundUpdateMatchAmountStatus
+  );
   setIndexingStatus(initialCreateRoundState.indexingStatus);
 }
 
@@ -335,19 +414,81 @@ async function handleDeployRoundContract(
   setDeploymentStatus: SetStatusFn,
   round: Round,
   signerOrProvider: Signer
-): Promise<number> {
+) {
   try {
     setDeploymentStatus(ProgressStatus.IN_PROGRESS);
-    const { transactionBlockNumber } = await deployRoundContract(
-      round,
+    const result = await deployRoundContract(round, signerOrProvider);
+
+    setDeploymentStatus(ProgressStatus.IS_SUCCESS);
+
+    return result;
+  } catch (error) {
+    console.error("handleDeployRoundContract", error);
+    setDeploymentStatus(ProgressStatus.IS_ERROR);
+    throw error;
+  }
+}
+
+async function handleUpdateRoundMatchAmount(
+  setDeploymentStatus: SetStatusFn,
+  roundId: string,
+  amount: number,
+  signerOrProvider: Signer
+) {
+  try {
+    setDeploymentStatus(ProgressStatus.IN_PROGRESS);
+    const { transactionBlockNumber } = await updateRoundMatchAmount(
+      roundId,
+      amount,
       signerOrProvider
     );
 
     setDeploymentStatus(ProgressStatus.IS_SUCCESS);
-
     return transactionBlockNumber;
   } catch (error) {
-    console.error("handleDeployRoundContract", error);
+    console.error("updateMatchAmount", error);
+    setDeploymentStatus(ProgressStatus.IS_ERROR);
+    throw error;
+  }
+}
+
+async function handleUpdateDefenderSentinel(
+  setDefenderUpdateSentinelStatus: SetStatusFn,
+  votingContractAddress: string
+) {
+  try {
+    setDefenderUpdateSentinelStatus(ProgressStatus.IN_PROGRESS);
+    const success = await updateDefenderSentinel(votingContractAddress);
+
+    setDefenderUpdateSentinelStatus(ProgressStatus.IS_SUCCESS);
+    return success;
+  } catch (error) {
+    console.error("updateDefenderSentinel", error);
+    setDefenderUpdateSentinelStatus(ProgressStatus.IS_ERROR);
+    throw error;
+  }
+}
+
+async function handleTransferFundsToRound(
+  setDeploymentStatus: SetStatusFn,
+  amount: number,
+  roundId: string,
+  tokenAddress: string,
+  signerOrProvider: Signer
+) {
+  try {
+    setDeploymentStatus(ProgressStatus.IN_PROGRESS);
+    const { transactionBlockNumber } = await transferFundsToRound(
+      amount,
+      roundId,
+      tokenAddress,
+      signerOrProvider
+    );
+
+    setDeploymentStatus(ProgressStatus.IS_SUCCESS);
+    return transactionBlockNumber;
+  } catch (error) {
+    console.error("handleTransferFundsToRound", error);
     setDeploymentStatus(ProgressStatus.IS_ERROR);
     throw error;
   }

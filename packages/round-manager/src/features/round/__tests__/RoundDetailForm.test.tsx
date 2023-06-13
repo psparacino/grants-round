@@ -509,7 +509,7 @@ describe("<RoundDetailForm />", () => {
     });
 
     it("renders a dropdown list of voting strategies when voting strategy input is clicked", async () => {
-      const options = getVotingOptions();
+      const options = getVotingOptions(ChainId.POLYGON_MUMBAI_CHAIN_ID);
 
       renderWrapped(<RoundDetailForm stepper={FormStepper} />);
       const votingStrategySelection = screen.getByTestId(

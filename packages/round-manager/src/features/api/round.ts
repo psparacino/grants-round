@@ -4,6 +4,7 @@ import {
   MatchingStatsData,
   MetadataPointer,
   Round,
+  Web3Instance,
 } from "./types";
 import { fetchFromIPFS, graphql_fetch } from "./utils";
 import {
@@ -14,6 +15,8 @@ import {
 import { ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 import { Signer } from "@ethersproject/abstract-signer";
+import erc20Abi from "./abi/erc20";
+import merklePayoutStrategy from "./abi/payoutStrategy/merklePayoutStrategy";
 
 /**
  * Fetch a round by ID
@@ -221,7 +224,7 @@ export async function listRounds(
 export async function deployRoundContract(
   round: Round,
   signerOrProvider: Signer
-): Promise<{ transactionBlockNumber: number }> {
+): Promise<{ transactionBlockNumber: number; roundAddress?: string }> {
   try {
     const chainId = await signerOrProvider.getChainId();
 
@@ -293,12 +296,64 @@ export async function deployRoundContract(
     const blockNumber = receipt.blockNumber;
     return {
       transactionBlockNumber: blockNumber,
+      roundAddress,
     };
   } catch (error) {
     console.error("deployRoundContract", error);
     throw new Error("Unable to create round");
   }
 }
+
+export const updateRoundMatchAmount = async (
+  roundId: string,
+  amount: number,
+  signerOrProvider: Signer
+) => {
+  try {
+    const roundImplementation = new ethers.Contract(
+      roundId,
+      roundImplementationContract.abi,
+      signerOrProvider
+    );
+
+    // Finalize round
+    const tx = await roundImplementation.updateMatchAmount(ethers.utils.parseEther(Number(amount).toFixed(18)));
+    const receipt = await tx.wait();
+    console.log("✅ Update match amount transaction hash: ", tx.hash);
+
+    return {
+      transactionBlockNumber: receipt.blockNumber,
+    };
+  } catch (error) {
+    console.error("deployRoundContract", error);
+    throw new Error("Unable to create round");
+  }
+};
+
+export const transferFundsToRound = async (
+  amount: number,
+  roundId: string,
+  tokenAddress: string,
+  signerOrProvider: Signer
+) => {
+  try {
+    const tokenContract = new ethers.Contract(
+      tokenAddress,
+      erc20Abi,
+      signerOrProvider
+    );
+
+    const tx = await tokenContract.transfer(roundId, ethers.utils.parseEther(Number(amount).toFixed(18)));
+    const receipt = await tx.wait();
+    console.log("✅ Fund contract transaction hash: ", tx.hash);
+    return {
+      transactionBlockNumber: receipt.blockNumber,
+    };
+  } catch (error) {
+    console.error("transferFundsError", error);
+    throw new Error("Unable to transfer funds to round");
+  }
+};
 
 /**
  * Shape of subgraph response of Round
@@ -437,44 +492,40 @@ export async function getProjectOwners(
   }
 }
 
-interface FinalizeRoundToContractProps {
-  roundId: string;
-  encodedDistribution: string;
-  signerOrProvider: Signer;
-}
-
-export async function finalizeRoundToContract({
+export async function setRoundReadyForPayout({
   roundId,
-  encodedDistribution,
   signerOrProvider,
-}: FinalizeRoundToContractProps) {
+}: {
+  roundId: string;
+  signerOrProvider: Web3Instance["provider"];
+}) {
   try {
     const roundImplementation = new ethers.Contract(
       roundId,
-      roundImplementationContract.abi,
+      merklePayoutStrategy,
       signerOrProvider
     );
 
     // Finalize round
-    const tx = await roundImplementation.updateDistribution(
-      encodedDistribution
-    );
+    const tx = await roundImplementation.setReadyForPayout({ value: 100 });
     const receipt = await tx.wait();
 
-    console.log("✅ Transaction hash: ", tx.hash);
+    console.log("✅ Set ready for payout transaction hash: ", tx.hash);
+
     const blockNumber = receipt.blockNumber;
     return {
       transactionBlockNumber: blockNumber,
     };
   } catch (error) {
     console.error("finalizeRoundToContract", error);
-    throw new Error("Unable to finalize Round");
+    throw new Error("Unable to set round ready for payout");
   }
 }
 
 /**
  * Fetch finalized matching distribution
  * @param roundId - the ID of a specific round for detail
+ * @param signerOrProvider
  */
 export async function fetchMatchingDistribution(
   roundId: string | undefined,

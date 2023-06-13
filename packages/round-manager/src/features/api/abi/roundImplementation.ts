@@ -38,6 +38,7 @@ const roundImplementation = [
   "function updateApplicationsEndTime(uint256 newApplicationsEndTime)",
   "function updateApplicationsStartTime(uint256 newApplicationsStartTime)",
   "function updateDistribution(bytes encodedDistribution)",
+  "function updateMatchAmount(uint256)",
   "function updateProjectsMetaPtr(tuple(uint256 protocol, string pointer) newProjectsMetaPtr)",
   "function updateRoundEndTime(uint256 newRoundEndTime)",
   "function updateRoundMetaPtr(tuple(uint256 protocol, string pointer) newRoundMetaPtr)",

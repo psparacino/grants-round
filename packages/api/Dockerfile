@@ -2,24 +2,66 @@ FROM node:18-slim as base
 
 RUN apt-get update && apt-get install -y openssl libssl-dev
 
-WORKDIR /app
+RUN npm install -g npm@8
+WORKDIR /src/app
 
-COPY package.json yarn.lock ./
-COPY prisma/ prisma/
+COPY package.json ./
+RUN npm install
+
+COPY tsconfig.json .
 COPY src/ src/
-COPY bin/ bin/
+COPY prisma/ prisma/
+COPY sentry.ts ./sentry.ts
+COPY index.ts ./index.ts
 
-ENV NODE_OPTIONS=--max_old_space_size=8192
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
 
-FROM base as dev
-ENV NODE_ENV=development
+ARG POSTGRES_USER
+ENV POSTGRES_USER=$POSTGRES_USER
 
-RUN yarn install
+ARG POSTGRES_PASSWORD
+ENV POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 
-COPY . .
+ARG POSTGRES_DB
+ENV POSTGRES_DB=$POSTGRES_DB
 
-RUN yarn build
+ARG POSTGRES_HOST
+ENV POSTGRES_HOST=$POSTGRES_HOST
 
-EXPOSE 8000
+ARG POSTGRES_PORT
+ENV POSTGRES_PORT=$POSTGRES_PORT
 
-CMD ["yarn", "start"]
+ARG SENTRY_DSN
+ENV SENTRY_DSN=$SENTRY_DSN
+
+ARG DEFENDER_ADMIN_API_KEY
+ENV DEFENDER_ADMIN_API_KEY=$DEFENDER_ADMIN_API_KEY
+
+ARG DEFENDER_ADMIN_API_SECRET
+ENV DEFENDER_ADMIN_API_SECRET=$DEFENDER_ADMIN_API_SECRET
+
+ARG SUBGRAPH_DUMMY_API
+ENV SUBGRAPH_DUMMY_API=$SUBGRAPH_DUMMY_API
+
+ARG PORT
+ENV PORT=$PORT
+
+RUN npm run prisma:migrate
+RUN npm run build
+
+# Cleanup
+RUN npx clean-modules
+
+## Using multi-staged builds to decrease image size.
+#FROM node:14-alpine
+#WORKDIR /src/app
+#COPY --from=build src/app/node_modules/ node_modules/
+#COPY --from=build src/app/package.json .
+#COPY --from=build src/app/build/ build/
+
+ENV NODE_ENV production
+
+EXPOSE 3000
+
+CMD ["npm", "start"]

@@ -1,7 +1,7 @@
 import { saveToIPFS } from "../../../features/api/ipfs";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ProgressStatus } from "../../../features/api/types";
-import { finalizeRoundToContract } from "../../../features/api/round";
+import { finalizeRoundToContract } from "../../../features/api/payoutStrategy/merklePayoutStrategy";
 import {
   FinalizeRoundProvider,
   useFinalizeRound,
@@ -168,7 +168,7 @@ const TestUseFinalizeRoundComponent = () => {
   return (
     <div>
       <button
-        onClick={() => finalizeRound(roundId, matchingData)}
+        onClick={() => finalizeRound(roundId, matchingData, [])}
         data-testid="finalize-round"
       >
         Finalize Round

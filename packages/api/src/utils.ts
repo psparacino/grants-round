@@ -1,15 +1,9 @@
-import { VotingStrategy } from "@prisma/client";
-import { getAddress } from "ethers/lib/utils";
-import { Response } from "express";
+import {VotingStrategy} from "@prisma/client";
+import {getAddress} from "ethers/lib/utils";
+import {Response} from "express";
 import fetch from "node-fetch";
-import {
-  ChainId,
-  ChainName,
-  RoundMetadata,
-  DenominationResponse,
-  MetaPtr,
-} from "./types";
-import { cache } from "./cacheConfig";
+import {ChainId, DenominationResponse, MetaPtr, RoundMetadata,} from "./types";
+import {cache} from "./cacheConfig";
 
 const TESNET_TOKEN_TO_USD_RATE = 1000;
 
@@ -277,6 +271,8 @@ export const getChainName = (chainId: ChainId) => {
     [ChainId.MAINNET]: "ethereum",
     [ChainId.OPTIMISM_MAINNET]: "optimistic-ethereum",
     [ChainId.FANTOM_MAINNET]: "fantom",
+    [ChainId.POLYGON_MAINNET]: 'polygon-pos',
+    [ChainId.MUMBAI]: 'polygon-pos'
   };
 
   if (coingeckoSupportedChainNames[chainId]) {
@@ -502,6 +498,7 @@ export const fetchAverageTokenPrices = async (
     if (isTestnet(chainId)) {
       let testnetAverageTokenPrices: any = {
         "0x0000000000000000000000000000000000000000": TESNET_TOKEN_TO_USD_RATE,
+        "0x9c3c9283d3e44854697cd22d3faa240cfb032889": TESNET_TOKEN_TO_USD_RATE,
       };
 
       tokenAddresses.map(tokenAddress => {
@@ -526,6 +523,7 @@ export const fetchAverageTokenPrices = async (
           // get valid address for tokens that are not on coingecko
           const validAddress = getValidCoinGeckoTokenAddress(chainId, address);
           const tokenPriceEndpoint = `https://api.coingecko.com/api/v3/coins/${chainName}/contract/${validAddress}/market_chart/range?vs_currency=usd&from=${startTime}&to=${endTime}`;
+          console.log(tokenPriceEndpoint);
           const resTokenPriceEndpoint = await fetch(tokenPriceEndpoint, {
             method: "GET",
             headers: {
@@ -647,7 +645,8 @@ export const isTestnet = (chainId: ChainId) => {
   const testnet = [
     ChainId.GOERLI,
     ChainId.FANTOM_TESTNET,
-    ChainId.LOCAL_ROUND_LAB
+    ChainId.LOCAL_ROUND_LAB,
+    ChainId.MUMBAI
   ];
 
   return testnet.includes(chainId);
@@ -668,6 +667,12 @@ export const getValidCoinGeckoTokenAddress = (chainId: ChainId, address: string)
   if (chainId == ChainId.FANTOM_MAINNET) {
     if (address == "0xc931f61b1534eb21d8c11b24f3f5ab2471d4ab50") { // BUSD
       validAddress = "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e" // DAI
+    }
+  }
+
+  if (chainId == ChainId.MUMBAI) {
+    if (address == "0x9c3c9283d3e44854697cd22d3faa240cfb032889") { // POLYGON WMATIC
+      validAddress = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270" // MATIC
     }
   }
   return validAddress;

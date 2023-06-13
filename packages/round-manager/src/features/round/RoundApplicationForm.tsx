@@ -114,6 +114,9 @@ export function RoundApplicationForm(props: {
     votingContractDeploymentStatus,
     payoutContractDeploymentStatus,
     roundContractDeploymentStatus,
+    roundTransferFundsStatus,
+    roundUpdateMatchAmountStatus,
+    defenderUpdateSentinelStatus,
     indexingStatus,
   } = useCreateRound();
 
@@ -123,6 +126,9 @@ export function RoundApplicationForm(props: {
       votingContractDeploymentStatus === ProgressStatus.IS_SUCCESS &&
       payoutContractDeploymentStatus === ProgressStatus.IS_SUCCESS &&
       roundContractDeploymentStatus === ProgressStatus.IS_SUCCESS &&
+      roundTransferFundsStatus === ProgressStatus.IS_SUCCESS &&
+      roundUpdateMatchAmountStatus === ProgressStatus.IS_SUCCESS &&
+      defenderUpdateSentinelStatus === ProgressStatus.IS_SUCCESS &&
       indexingStatus === ProgressStatus.IS_SUCCESS;
 
     if (isSuccess) {
@@ -133,6 +139,9 @@ export function RoundApplicationForm(props: {
     votingContractDeploymentStatus,
     payoutContractDeploymentStatus,
     roundContractDeploymentStatus,
+    roundTransferFundsStatus,
+    roundUpdateMatchAmountStatus,
+    defenderUpdateSentinelStatus,
     indexingStatus,
     programId,
     navigate,
@@ -143,6 +152,9 @@ export function RoundApplicationForm(props: {
       IPFSCurrentStatus === ProgressStatus.IS_ERROR ||
       votingContractDeploymentStatus === ProgressStatus.IS_ERROR ||
       payoutContractDeploymentStatus === ProgressStatus.IS_ERROR ||
+      roundTransferFundsStatus === ProgressStatus.IS_ERROR ||
+      roundUpdateMatchAmountStatus === ProgressStatus.IS_ERROR ||
+      defenderUpdateSentinelStatus === ProgressStatus.IS_ERROR ||
       roundContractDeploymentStatus === ProgressStatus.IS_ERROR
     ) {
       setTimeout(() => {
@@ -158,6 +170,9 @@ export function RoundApplicationForm(props: {
     votingContractDeploymentStatus,
     payoutContractDeploymentStatus,
     roundContractDeploymentStatus,
+    roundTransferFundsStatus,
+    roundUpdateMatchAmountStatus,
+    defenderUpdateSentinelStatus,
     indexingStatus,
     navigate,
     programId,
@@ -231,6 +246,21 @@ export function RoundApplicationForm(props: {
       status: roundContractDeploymentStatus,
     },
     {
+      name: "Transferring",
+      description: "The round contract is being funded.",
+      status: roundTransferFundsStatus,
+    },
+    {
+      name: "Updating",
+      description: "Updating the round match amount.",
+      status: roundUpdateMatchAmountStatus,
+    },
+    {
+      name: "Defender",
+      description: "Updating the defender sentinel.",
+      status: defenderUpdateSentinelStatus,
+    },
+    {
       name: "Indexing",
       description: "The subgraph is indexing the data.",
       status: indexingStatus,
@@ -250,6 +280,9 @@ export function RoundApplicationForm(props: {
     votingContractDeploymentStatus === ProgressStatus.IN_PROGRESS ||
     payoutContractDeploymentStatus === ProgressStatus.IN_PROGRESS ||
     roundContractDeploymentStatus === ProgressStatus.IN_PROGRESS ||
+    roundTransferFundsStatus === ProgressStatus.IN_PROGRESS ||
+    roundUpdateMatchAmountStatus === ProgressStatus.IN_PROGRESS ||
+    defenderUpdateSentinelStatus === ProgressStatus.IN_PROGRESS ||
     indexingStatus === ProgressStatus.IN_PROGRESS ||
     indexingStatus === ProgressStatus.IS_SUCCESS ||
     !props.initialData.program;

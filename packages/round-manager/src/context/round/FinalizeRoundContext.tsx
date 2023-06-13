@@ -15,14 +15,24 @@ import { useWallet } from "../../features/common/Auth";
 import { saveToIPFS } from "../../features/api/ipfs";
 import {
   fetchMatchingDistribution,
-  finalizeRoundToContract,
+  setRoundReadyForPayout,
 } from "../../features/api/round";
 import { datadogLogs } from "@datadog/browser-logs";
 import { ethers } from "ethers";
+import { QFDistribution } from "../../features/api/api";
+import { generateStandardMerkleTree } from "../../features/api/utils";
+import { roundImplementationContract } from "../../features/api/contracts";
+import { Web3Provider } from "@ethersproject/providers";
+import {
+  finalizeRoundToContract,
+  handlePayout,
+} from "../../features/api/payoutStrategy/merklePayoutStrategy";
 
 export interface FinalizeRoundState {
   IPFSCurrentStatus: ProgressStatus;
   finalizeRoundToContractStatus: ProgressStatus;
+  readyForPayoutStatus: ProgressStatus;
+  payoutStatus: ProgressStatus;
 }
 
 interface _finalizeRoundParams {
@@ -30,12 +40,15 @@ interface _finalizeRoundParams {
   roundId: string;
   matchingJSON: MatchingStatsData[] | undefined;
   signerOrProvider: Web3Instance["provider"];
+  distribution: QFDistribution[];
 }
 
 type Action =
   | SET_DEPLOYMENT_STATUS_ACTION
   | SET_STORING_STATUS_ACTION
-  | RESET_TO_INITIAL_STATE_ACTION;
+  | RESET_TO_INITIAL_STATE_ACTION
+  | SET_PAYOUT_STATUS_ACTION
+  | SET_READY_FOR_PAYOUT_STATUS;
 
 type SET_STORING_STATUS_ACTION = {
   type: ActionType.SET_STORING_STATUS;
@@ -51,6 +64,20 @@ type SET_DEPLOYMENT_STATUS_ACTION = {
   };
 };
 
+type SET_PAYOUT_STATUS_ACTION = {
+  type: ActionType.SET_PAYOUT_STATUS;
+  payload: {
+    payoutStatus: ProgressStatus;
+  };
+};
+
+type SET_READY_FOR_PAYOUT_STATUS = {
+  type: ActionType.SET_READY_FOR_PAYOUT_STATUS;
+  payload: {
+    readyForPayoutStatus: ProgressStatus;
+  };
+};
+
 type RESET_TO_INITIAL_STATE_ACTION = {
   type: ActionType.RESET_TO_INITIAL_STATE;
 };
@@ -60,12 +87,16 @@ type Dispatch = (action: Action) => void;
 enum ActionType {
   SET_STORING_STATUS = "SET_STORING_STATUS",
   SET_DEPLOYMENT_STATUS = "SET_DEPLOYMENT_STATUS",
+  SET_READY_FOR_PAYOUT_STATUS = "SET_READY_FOR_PAYOUT_STATUS",
+  SET_PAYOUT_STATUS = "SET_PAYOUT_STATUS",
   RESET_TO_INITIAL_STATE = "RESET_TO_INITIAL_STATE",
 }
 
 export const initialFinalizeRoundState: FinalizeRoundState = {
   IPFSCurrentStatus: ProgressStatus.NOT_STARTED,
   finalizeRoundToContractStatus: ProgressStatus.NOT_STARTED,
+  readyForPayoutStatus: ProgressStatus.NOT_STARTED,
+  payoutStatus: ProgressStatus.NOT_STARTED,
 };
 
 export const FinalizeRoundContext = createContext<
@@ -81,6 +112,16 @@ const finalizeRoundReducer = (state: FinalizeRoundState, action: Action) => {
         ...state,
         finalizeRoundToContractStatus:
           action.payload.finalizeRoundToContractStatus,
+      };
+    case ActionType.SET_READY_FOR_PAYOUT_STATUS:
+      return {
+        ...state,
+        readyForPayoutStatus: action.payload.readyForPayoutStatus,
+      };
+    case ActionType.SET_PAYOUT_STATUS:
+      return {
+        ...state,
+        payoutStatus: action.payload.payoutStatus,
       };
     case ActionType.RESET_TO_INITIAL_STATE: {
       return initialFinalizeRoundState;
@@ -111,11 +152,55 @@ export const FinalizeRoundProvider = ({
   );
 };
 
+async function payoutRound(
+  dispatch: Dispatch,
+  payoutStrategyAddress: string,
+  distribution: QFDistribution[],
+  signerOrProvider: Web3Provider
+) {
+  try {
+    dispatch({
+      type: ActionType.SET_PAYOUT_STATUS,
+      payload: {
+        payoutStatus: ProgressStatus.IN_PROGRESS,
+      },
+    });
+
+    const { transactionBlockNumber } = await handlePayout(
+      payoutStrategyAddress,
+      distribution,
+      signerOrProvider
+    );
+
+    dispatch({
+      type: ActionType.SET_PAYOUT_STATUS,
+      payload: {
+        payoutStatus: ProgressStatus.IS_SUCCESS,
+      },
+    });
+
+    console.log(`payoutRound TX Hash`, transactionBlockNumber);
+    return {
+      transactionBlockNumber,
+    };
+  } catch (error) {
+    datadogLogs.logger.error(`error: payoutError - ${error}`);
+    console.error(`payoutError`, error);
+    dispatch({
+      type: ActionType.SET_PAYOUT_STATUS,
+      payload: {
+        payoutStatus: ProgressStatus.IS_ERROR,
+      },
+    });
+  }
+}
+
 const _finalizeRound = async ({
   dispatch,
   roundId,
   matchingJSON,
   signerOrProvider,
+  distribution,
 }: _finalizeRoundParams) => {
   dispatch({
     type: ActionType.RESET_TO_INITIAL_STATE,
@@ -125,21 +210,50 @@ const _finalizeRound = async ({
       throw new Error("matchingJSON is undefined");
     }
 
+    const roundImplementation = new ethers.Contract(
+      roundId,
+      roundImplementationContract.abi,
+      signerOrProvider
+    );
+
+    const payoutStrategyAddress = await roundImplementation.payoutStrategy();
+
+    if (!payoutStrategyAddress) {
+      throw new Error("payoutStrategyAddress is undefined");
+    }
+
+    console.log("payoutStrategyAddress", payoutStrategyAddress);
+
+    const { tree } = generateStandardMerkleTree(distribution);
+
+    console.log('generated the merkle tree, storing the document', tree);
+
     const IpfsHash = await storeDocument(dispatch, matchingJSON);
 
     const distributionMetaPtr = {
       protocol: 1,
       pointer: IpfsHash,
     };
-    const merkleRoot = "";
+
+    const merkleRoot = tree.root;
     const transactionBlockNumber = await finalizeToContract(
       dispatch,
-      roundId,
+      payoutStrategyAddress,
       merkleRoot,
       distributionMetaPtr,
       signerOrProvider
     );
+
     console.log("transactionBlockNumber: ", transactionBlockNumber);
+
+    await setReadyForPayout(dispatch, roundId, signerOrProvider);
+
+    await payoutRound(
+      dispatch,
+      payoutStrategyAddress,
+      distribution,
+      signerOrProvider
+    );
   } catch (error) {
     datadogLogs.logger.error(`error: _finalizeRound - ${error}`);
     console.error("_finalizeRound: ", error);
@@ -158,12 +272,14 @@ export const useFinalizeRound = () => {
 
   const finalizeRound = (
     roundId: string,
-    matchingJSON: MatchingStatsData[] | undefined
+    matchingJSON: MatchingStatsData[] | undefined,
+    distribution: QFDistribution[]
   ) => {
     return _finalizeRound({
       dispatch: context.dispatch,
       roundId,
       matchingJSON,
+      distribution,
       // @ts-expect-error TODO: resolve this situation around signers and providers
       signerOrProvider: walletSigner,
     });
@@ -173,6 +289,8 @@ export const useFinalizeRound = () => {
     finalizeRound,
     IPFSCurrentStatus: context.state.IPFSCurrentStatus,
     finalizeRoundToContractStatus: context.state.finalizeRoundToContractStatus,
+    readyForPayoutStatus: context.state.readyForPayoutStatus,
+    payoutStatus: context.state.payoutStatus,
   };
 };
 
@@ -214,7 +332,7 @@ async function storeDocument(
 
 async function finalizeToContract(
   dispatch: (action: Action) => void,
-  roundId: string,
+  payoutStrategyAddress: string,
   merkleRoot: string,
   distributionMetaPtr: { protocol: number; pointer: string },
   signerOrProvider: Web3Instance["provider"]
@@ -225,15 +343,17 @@ async function finalizeToContract(
       payload: { finalizeRoundToContractStatus: ProgressStatus.IN_PROGRESS },
     });
 
-    const merkleRoootInBytes = ethers.utils.formatBytes32String(merkleRoot);
+    const merkleRootInBytes = merkleRoot;
 
     const encodedDistribution = encodeDistributionParameters(
-      merkleRoootInBytes,
+      merkleRootInBytes,
       distributionMetaPtr
     );
 
+    console.log("encodedDistribution", encodedDistribution);
+
     const { transactionBlockNumber } = await finalizeRoundToContract({
-      roundId,
+      payoutStrategyAddress,
       encodedDistribution,
       // @ts-expect-error TODO: resolve this situation around signers and providers
       signerOrProvider: signerOrProvider,
@@ -253,6 +373,36 @@ async function finalizeToContract(
       payload: { finalizeRoundToContractStatus: ProgressStatus.IS_ERROR },
     });
 
+    throw error;
+  }
+}
+
+async function setReadyForPayout(
+  dispatch: (action: Action) => void,
+  roundId: string,
+  signerOrProvider: Web3Instance["provider"]
+) {
+  try {
+    dispatch({
+      type: ActionType.SET_READY_FOR_PAYOUT_STATUS,
+      payload: {
+        readyForPayoutStatus: ProgressStatus.IN_PROGRESS,
+      },
+    });
+
+    await setRoundReadyForPayout({ roundId, signerOrProvider });
+
+    dispatch({
+      type: ActionType.SET_READY_FOR_PAYOUT_STATUS,
+      payload: { readyForPayoutStatus: ProgressStatus.IS_SUCCESS },
+    });
+  } catch (error) {
+    datadogLogs.logger.error(`error: setReadyForPayout - ${error}`);
+    console.error(`setReadyForPayout`, error);
+    dispatch({
+      type: ActionType.SET_READY_FOR_PAYOUT_STATUS,
+      payload: { readyForPayoutStatus: ProgressStatus.IS_ERROR },
+    });
     throw error;
   }
 }

@@ -17,9 +17,6 @@ import {
   fetchAverageTokenPrices,
   fetchProjectIdToPayoutAddressMapping, fetchRoundMetadata,
 } from "../utils";
-import {
-  fetchContributorsAboveThreshold
-} from "../sybilProtection/passport";
 
 /**
  * summarizeRound is an async function that summarizes a round of voting by counting the number of contributions, the number of unique contributors, the total amount of contributions in USD, and the average contribution in USD.
@@ -111,29 +108,31 @@ export const summarizeQFContributions = async (
  *
  * @param {ChainId} chainId - The id of the chain to fetch the votes from.
  * @param {string} votingStrategyId - The id of the voting strategy to retrieve votes for.
- * @param {string} lastID - The id of the last vote retrieved in the previous iteration of the function. Used for pagination.
+ * @param {string} lastCreatedAt - The createdAt timestamp of the most recent vote retrieved in the previous iteration of the function. Used for pagination. * @param {QFContribution[]} votes - An array of QFContribution objects representing the votes retrieved in previous iterations of the function. Used for pagination.
  * @param {QFContribution[]} votes - An array of QFContribution objects representing the votes retrieved in previous iterations of the function. Used for pagination.
  * @return {Promise<QFContribution[]>} - An array of QFContribution objects representing the votes made in the specified round.
  */
 export const fetchQFContributionsForRound = async (
   chainId: ChainId,
   votingStrategyId: string,
-  lastID: string = "",
+  lastCreatedAt: string = '0',
   votes: QFContribution[] = []
 ): Promise<QFContribution[]> => {
   const query = `
-    query GetContributionsForRound($votingStrategyId: String, $lastID: String) {
+       query GetContributionsForRound($votingStrategyId: String, $lastCreatedAt: String) {
       votingStrategies(where:{
         id: $votingStrategyId
       }) {
-        votes(first: 1000, where: {
-            id_gt: $lastID
+        votes(first: 1000, orderBy: createdAt, orderDirection: desc, where: {
+          createdAt_gt: $lastCreatedAt
         }) {
           id
           amount
           token
           from
           to
+          projectId
+          createdAt
         }
         round {
           roundStartTime
@@ -144,12 +143,10 @@ export const fetchQFContributionsForRound = async (
             protocol
           }
         }
-
       }
-
     }
   `;
-  const variables = { votingStrategyId, lastID };
+  const variables = { votingStrategyId, lastCreatedAt };
 
   const response = await fetchFromGraphQL(chainId, query, variables);
 
@@ -164,37 +161,50 @@ export const fetchQFContributionsForRound = async (
 
   const projectsMetaPtr: MetaPtr =
     response.data?.votingStrategies[0]?.round.projectsMetaPtr;
-  const projectPayoutToIdMapping = await fetchPayoutAddressToProjectIdMapping(
+  const projectIdToPayoutAddressMapping = await fetchProjectIdToPayoutAddressMapping(
     projectsMetaPtr
   );
 
   response.data?.votingStrategies[0]?.votes.map((vote: QFVotedEvent) => {
-    const payoutAddress = getAddress(vote.to.toLowerCase());
+    let projectId: string | undefined;
+    try {
+      projectId = ethers.utils.parseBytes32String(vote.projectId.toLowerCase());
+    } catch (error) {
+      console.log('error', 'invalid project id', vote.projectId);
+    }
 
-    const projectId = projectPayoutToIdMapping.get(payoutAddress);
+    if (!projectId) {
+      return;
+    }
+    console.log('project id', projectId);
 
-    if (projectId && payoutAddress) {
+    const payoutAddress = projectIdToPayoutAddressMapping.get(projectId);
+
+    if (!payoutAddress) {
+      console.log(
+        'error',
+        'invalid payout address',
+        vote.projectId,
+        payoutAddress
+      );
+      return;
+    }
+
+    if (projectId) {
       votes.push({
         amount: BigNumber.from(vote.amount),
         token: vote.token,
         contributor: vote.from,
         projectId: projectId,
-        projectPayoutAddress: vote.to,
+        projectPayoutAddress: payoutAddress
       });
-    } else {
-      // console.error(
-      //   "vote has invalid project 'id' or payout 'to' address",
-      //   vote
-      // );
     }
   });
 
   return await fetchQFContributionsForRound(
     chainId,
     votingStrategyId,
-    response.data?.votingStrategies[0]?.votes[
-    response.data?.votingStrategies[0]?.votes.length - 1
-      ].id,
+    response.data?.votingStrategies[0]?.votes[0].createdAt,
     votes
   );
 };
@@ -365,6 +375,7 @@ export const matchQFContributions = async (
           },
         },
       };
+      continue;
     }
 
     // check if contributor has already made contributions to the project
@@ -384,7 +395,7 @@ export const matchQFContributions = async (
   let matchResults: QFDistribution[] = [];
   let totalMatchInUSD = 0;
 
-  const contributorsWhoShouldBeMatched = await fetchContributorsAboveThreshold();
+  // const contributorsWhoShouldBeMatched = await fetchContributorsAboveThreshold();
 
   for (const projectId in contributionsByProject) {
     let sumOfSquares = 0;
@@ -400,18 +411,15 @@ export const matchQFContributions = async (
 
       uniqueContributors.add(contributor);
 
-      const checksumAddress = ethers.utils.getAddress(contributor)
-
-      if (
-        usdValue &&
-        contributorsWhoShouldBeMatched.includes(checksumAddress)
-      ) {
+      if (usdValue) {
         sumOfSquares += Math.sqrt(usdValue);
         sumOfContributions += usdValue;
       }
     });
 
-    const matchInUSD = Math.pow(sumOfSquares, 2) - sumOfContributions;
+    const matchInUSD = Math.pow(sumOfSquares, 2);
+    // TODO: This was originally in the code but seems to be wrong? Ask @owocki maybe
+    // const matchInUSD = Math.pow(sumOfSquares, 2) - sumOfContributions;
 
     const projectPayoutAddress = projectIdToPayoutMapping.get(projectId)!;
 
@@ -528,7 +536,6 @@ export const matchQFContributions = async (
     });
     console.log("=====================");
   }
-
 
   return {
     distribution: matchResults,

@@ -17,5 +17,5 @@
     "sourceRoot": "src",
     "types": ["jest"]
   },
-  "files": ["index.ts"]
+  "files": ["./index.ts"]
 }
