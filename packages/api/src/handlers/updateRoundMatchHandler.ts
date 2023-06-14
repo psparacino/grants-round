@@ -35,7 +35,7 @@ export const updateRoundMatchHandler = async (req: Request, res: Response) => {
 
         let contributions = await fetchQFContributionsForRound(
           chainId as ChainId,
-          votingStrategy.id,
+          roundId,
         );
 
         contributions = await hotfixForRounds(roundId, contributions);

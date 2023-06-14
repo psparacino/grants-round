@@ -1,10 +1,9 @@
 import { BigNumber, ethers } from "ethers";
-import { formatUnits, getAddress } from "ethers/lib/utils";
+import { formatUnits } from "ethers/lib/utils";
 import {
   ChainId,
   QFContributionSummary,
   QFContribution,
-  MetaPtr,
   QFVotedEvent,
   QFDistribution,
   RoundMetadata,
@@ -15,14 +14,13 @@ import {
   fetchCurrentTokenPrices,
   fetchPayoutAddressToProjectIdMapping,
   fetchAverageTokenPrices,
-  fetchProjectIdToPayoutAddressMapping, fetchRoundMetadata,
+  fetchProjectIdToPayoutAddressMapping,
 } from "../utils";
 
 /**
  * summarizeRound is an async function that summarizes a round of voting by counting the number of contributions, the number of unique contributors, the total amount of contributions in USD, and the average contribution in USD.
  *
  * @param {ChainId} chainId - The id of the chain to fetch token prices from.
- * @param {RoundMetadata} roundMetadata - An object containing metadata about the round, including the start and end times and the token being voted on.
  * @param {QFContribution[]} contributions - An array of QFContribution objects representing the contributions made in the round.
  * @return {Promise<QFContributionSummary>} - An object containing the summarized data for the round.
  */
@@ -107,38 +105,41 @@ export const summarizeQFContributions = async (
  * The function uses pagination to retrieve all votes from the GraphQL API and returns them as an array of QFContribution objects.
  *
  * @param {ChainId} chainId - The id of the chain to fetch the votes from.
- * @param {string} votingStrategyId - The id of the voting strategy to retrieve votes for.
+ * @param {string} roundId - The id of the voting strategy to retrieve votes for.
  * @param {string} lastCreatedAt - The createdAt timestamp of the most recent vote retrieved in the previous iteration of the function. Used for pagination. * @param {QFContribution[]} votes - An array of QFContribution objects representing the votes retrieved in previous iterations of the function. Used for pagination.
  * @param {QFContribution[]} votes - An array of QFContribution objects representing the votes retrieved in previous iterations of the function. Used for pagination.
  * @return {Promise<QFContribution[]>} - An array of QFContribution objects representing the votes made in the specified round.
  */
 export const fetchQFContributionsForRound = async (
   chainId: ChainId,
-  votingStrategyId: string,
+  roundId: string,
   lastCreatedAt: string = '0',
   votes: QFContribution[] = []
 ): Promise<QFContribution[]> => {
   const query = `
-       query GetContributionsForRound($votingStrategyId: String, $lastCreatedAt: String) {
-      votingStrategies(where:{
-        id: $votingStrategyId
-      }) {
-        votes(first: 1000, orderBy: createdAt, orderDirection: desc, where: {
-          createdAt_gt: $lastCreatedAt
-        }) {
-          id
+    query GetContributionsForRound($roundId: String) {
+      quadraticTipping(id: $roundId) {
+        matchAmount
+        votes( 
+          first: 1000
+          orderBy: createdAt
+          orderDirection: desc
+          where: {createdAt_gt: $lastCreatedAt}
+        ) {
           amount
-          token
           from
           to
+          id
           projectId
+          token
+          version
           createdAt
         }
         round {
-          roundStartTime
           roundEndTime
-          token
-          projectsMetaPtr {
+          roundStartTime
+          roundMetaPtr {
+            id
             pointer
             protocol
           }
@@ -146,7 +147,7 @@ export const fetchQFContributionsForRound = async (
       }
     }
   `;
-  const variables = { votingStrategyId, lastCreatedAt };
+  const variables = { roundId, lastCreatedAt };
 
   const response = await fetchFromGraphQL(chainId, query, variables);
 
@@ -155,17 +156,11 @@ export const fetchQFContributionsForRound = async (
     return [];
   }
 
-  if (response.data?.votingStrategies[0]?.votes.length === 0) {
+  if (response.data?.quadraticTipping?.votes.length === 0) {
     return votes;
   }
 
-  const projectsMetaPtr: MetaPtr =
-    response.data?.votingStrategies[0]?.round.projectsMetaPtr;
-  const projectIdToPayoutAddressMapping = await fetchProjectIdToPayoutAddressMapping(
-    projectsMetaPtr
-  );
-
-  response.data?.votingStrategies[0]?.votes.map((vote: QFVotedEvent) => {
+  response.data?.quadraticTipping?.votes.map((vote: QFVotedEvent) => {
     let projectId: string | undefined;
     try {
       projectId = ethers.utils.parseBytes32String(vote.projectId.toLowerCase());
@@ -176,19 +171,6 @@ export const fetchQFContributionsForRound = async (
     if (!projectId) {
       return;
     }
-    console.log('project id', projectId);
-
-    const payoutAddress = projectIdToPayoutAddressMapping.get(projectId);
-
-    if (!payoutAddress) {
-      console.log(
-        'error',
-        'invalid payout address',
-        vote.projectId,
-        payoutAddress
-      );
-      return;
-    }
 
     if (projectId) {
       votes.push({
@@ -196,15 +178,15 @@ export const fetchQFContributionsForRound = async (
         token: vote.token,
         contributor: vote.from,
         projectId: projectId,
-        projectPayoutAddress: payoutAddress
+        projectPayoutAddress: vote.to,
       });
     }
   });
 
   return await fetchQFContributionsForRound(
     chainId,
-    votingStrategyId,
-    response.data?.votingStrategies[0]?.votes[0].createdAt,
+    roundId,
+    response.data?.quadraticTipping?.votes[0].createdAt,
     votes
   );
 };
@@ -215,6 +197,8 @@ export const fetchQFContributionsForRound = async (
  * a given project from a GraphQL API.
  *
  * @param {ChainId} chainId - The ID of the chain to fetch data from.
+ * @param roundId
+ * @param metadata
  * @param {string} votingStrategyId - The ID of the voting strategy to fetch data for.
  * @param {string[]} projectIds - An array of project IDs to filter the contributions by.
  * @param {string} lastID - The ID of the last contribution fetched. Used for pagination.
