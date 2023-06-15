@@ -219,6 +219,9 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
 
 
   function disableBeforeRoundStartDate(current: moment.Moment) {
+    if (startASAP) {
+      return current.isAfter(moment().startOf('day'));
+    }
     return current.isAfter(roundStartDate);
   }
 
