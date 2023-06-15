@@ -41,7 +41,6 @@
     "@sentry/integrations": "^7.28.0",
     "@sentry/node": "^7.26.0",
     "cors": "^2.8.5",
-    "defender-sentinel-client": "^1.44.0",
     "ethers": "^5.7.2",
     "express": "^4.17.1",
     "node-cache": "^5.1.2",
