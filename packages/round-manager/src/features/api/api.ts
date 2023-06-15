@@ -102,6 +102,7 @@ export const useRoundMatchData = (chainId: string, roundId: string) => {
 
   useMemo(() => {
     setLoading(true);
+    setError(undefined);
     const url = `${process.env.REACT_APP_GRANTS_API_ENDPOINT}/data/match/round/${chainId}/${roundId}`;
     fetch(url, {
       method: "GET",
