@@ -185,10 +185,6 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
         .add(4, "minutes")
         .startOf("minute")
         .toDate(),
-      roundEndTime: moment()
-        .add(7, "minutes")
-        .startOf("minute")
-        .toDate()
     };
 
     const qfRelayTimes = {
@@ -208,7 +204,7 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
       // If it's a relay round, "ignore" application period
       ...(isQFRelayRound ? qfRelayTimes : {}),
       // If start ASAP, set start times to now
-      ...(startASAP ?startASAPTimes : {}),
+      ...(startASAP ? startASAPTimes : {}),
     };
     setFormData(data);
     setCurrentStep(currentStep + 1);
