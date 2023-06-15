@@ -8,7 +8,6 @@ import { updateRoundMatchHandler } from "../../handlers/updateRoundMatchHandler"
 import { getProjectMatchDataHandler } from "../../handlers/getProjectMatchDataHandler";
 import { getRoundMatchDataHandler } from "../../handlers/getRoundMatchDataHandler";
 import { getProjectSummariesDataHandler } from "../../handlers/getProjectSummariesDataHandler";
-import {updateDefenderSentinelHandler} from "../../handlers/updateDefenderSentinel";
 
 const router = Router();
 
@@ -46,7 +45,5 @@ router.get(
   getProjectMatchDataHandler
 );
 router.get("/data/match/round/:chainId/:roundId", getRoundMatchDataHandler);
-
-router.post("/update/add-defender-sentinel-address/:votingStrategyAddress", updateDefenderSentinelHandler);
 
 export default router;

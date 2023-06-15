@@ -279,6 +279,7 @@ function FinalizeRound(props: {
   onUpdateMatchData: () => Promise<void>;
 }) {
   const [openInfoModal, setOpenInfoModal] = useState(false);
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
   const [openProgressModal, setOpenProgressModal] = useState(false);
   const [openErrorModal, setOpenErrorModal] = useState(false);
   const navigate = useNavigate();
@@ -300,6 +301,9 @@ function FinalizeRound(props: {
     ) {
       // redirectToFinalizedRoundStats(navigate, 2000);
       console.log("success");
+      setOpenProgressModal(false);
+      setOpenInfoModal(false);
+      setOpenSuccessModal(true);
     }
   }, [
     navigate,
@@ -437,6 +441,15 @@ function FinalizeRound(props: {
               isOpen={openInfoModal}
               setIsOpen={setOpenInfoModal}
               continueButtonAction={handleFinalizeRound}
+            />
+            <InfoModal
+              isOpen={openSuccessModal}
+              setIsOpen={setOpenSuccessModal}
+              continueButtonAction={() => {
+                setOpenSuccessModal(false);
+              }}
+              title={"Success!"}
+              body={<SuccessModalBody />}
             />
             <ProgressModal
               isOpen={openProgressModal}
@@ -706,6 +719,16 @@ function InfoModalBody() {
         Please make sure that the final distribution is correct.
         <br />
         You will not be able to make changes after finalizing.
+      </p>
+    </div>
+  );
+}
+
+function SuccessModalBody() {
+  return (
+    <div className="text-sm text-grey-400 gap-16">
+      <p className="text-sm">
+        Success! You have finalized the distribution for your round.
       </p>
     </div>
   );
