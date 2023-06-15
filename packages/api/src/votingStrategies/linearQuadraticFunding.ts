@@ -117,7 +117,7 @@ export const fetchQFContributionsForRound = async (
   votes: QFContribution[] = []
 ): Promise<QFContribution[]> => {
   const query = `
-    query GetContributionsForRound($roundId: String) {
+    query GetContributionsForRound($roundId: String, $lastCreatedAt: String) {
       quadraticTipping(id: $roundId) {
         matchAmount
         votes( 
@@ -163,7 +163,9 @@ export const fetchQFContributionsForRound = async (
   response.data?.quadraticTipping?.votes.map((vote: QFVotedEvent) => {
     let projectId: string | undefined;
     try {
-      projectId = ethers.utils.parseBytes32String(vote.projectId.toLowerCase());
+      const decodedId = vote.projectId.slice(2, 34);
+      const decodedIdWithPrefix = '0x' + decodedId.slice(0, decodedId.lastIndexOf('1'));
+      projectId =  BigNumber.from(decodedIdWithPrefix).toString();
     } catch (error) {
       console.log('error', 'invalid project id', vote.projectId);
     }
@@ -321,10 +323,6 @@ export const matchQFContributions = async (
     [projectId: string]: any;
   } = {};
 
-  const projectIdToPayoutMapping = await fetchProjectIdToPayoutAddressMapping(
-    metadata.projectsMetaPtr
-  );
-
   let contributionTokens: string[] = [];
 
   for (const contribution of contributions) {
@@ -350,6 +348,7 @@ export const matchQFContributions = async (
     if (!contributionsByProject[projectId]) {
       // add projectID to mapping along with the contribution
       contributionsByProject[projectId] = {
+        payoutAddress: contribution.projectPayoutAddress,
         contributions: {
           // all contributions made to the projectId
           [contributor]: {
@@ -390,6 +389,7 @@ export const matchQFContributions = async (
     const contributions: QFContribution[] = Object.values(
       contributionsByProject[projectId].contributions
     );
+    const projectPayoutAddress = contributionsByProject[projectId].payoutAddress;
     contributions.forEach((contribution) => {
       const { contributor, usdValue } = contribution;
 
@@ -404,8 +404,6 @@ export const matchQFContributions = async (
     const matchInUSD = Math.pow(sumOfSquares, 2);
     // TODO: This was originally in the code but seems to be wrong? Ask @owocki maybe
     // const matchInUSD = Math.pow(sumOfSquares, 2) - sumOfContributions;
-
-    const projectPayoutAddress = projectIdToPayoutMapping.get(projectId)!;
 
     matchResults.push({
       projectId: projectId,
