@@ -7,10 +7,17 @@ import {
   QuadraticTipping,
   QuadraticTippingDistribution,
 } from "../../generated/schema";
-import { RoundImplementation } from "../../generated/templates";
+import {
+  RoundImplementation,
+  RoundMetaData as RoundMetaDataTemplate,
+} from "../../generated/templates";
 import { RoundImplementation as RoundImplementationContract } from "../../generated/templates/RoundImplementation/RoundImplementation";
 import { updateMetaPtr } from "../utils";
-import { log, BigInt } from "@graphprotocol/graph-ts";
+import {
+  log,
+  BigInt,
+} from "@graphprotocol/graph-ts";
+
 
 /**
  * @dev Handles indexing on RoundCreatedEvent event.
@@ -48,12 +55,21 @@ export function handleRoundCreated(event: RoundCreatedEvent): void {
     "-"
   );
   let roundMetaPtr = roundContract.roundMetaPtr();
+
+  const pointer = roundMetaPtr.getPointer().toString();
+
   let metaPtr = updateMetaPtr(
     roundMetaPtrId,
     roundMetaPtr.getProtocol().toI32(),
     roundMetaPtr.getPointer().toString()
   );
   round.roundMetaPtr = metaPtr.id;
+
+  log.info("before", []);
+
+  RoundMetaDataTemplate.create(pointer);
+
+  log.info("after", []);
 
   // set applicationsMetaPtr
   const applicationsMetaPtrId = [

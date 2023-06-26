@@ -2,9 +2,9 @@ specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 # TODO: wait until ipfs.cat is supported in studio
-# features:
-# - ipfsOnEthereumContracts
-# - nonDeterministicIpfs
+features:
+  - ipfsOnEthereumContracts
+  - nonDeterministicIpfs
 dataSources:
   # ProgramFactory
   - kind: ethereum/contract
@@ -16,7 +16,7 @@ dataSources:
       startBlock: {{ startBlock }}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - Program
@@ -40,7 +40,7 @@ dataSources:
       startBlock: {{ startBlock }}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - Round
@@ -66,7 +66,7 @@ dataSources:
       startBlock: {{ startBlock }}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - VotingStrategy
@@ -95,7 +95,7 @@ dataSources:
       startBlock: {{ startBlock }}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - VotingStrategy
@@ -119,7 +119,7 @@ dataSources:
       startBlock: {{ startBlock }}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - QuadraticTipping
@@ -143,7 +143,7 @@ templates:
       abi: ProgramImplementation
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - ProgramRole
@@ -165,7 +165,7 @@ templates:
       abi: RoundImplementation
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - RoundRole
@@ -196,7 +196,7 @@ templates:
       abi: QuadraticFundingVotingStrategyImplementation
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - QFVote
@@ -218,7 +218,7 @@ templates:
       abi: QuadraticFundingRelayStrategyImplementation
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - QFVote
@@ -240,7 +240,7 @@ templates:
       abi: MerklePayoutStrategyImplementation
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - QuadraticTipping
@@ -256,7 +256,20 @@ templates:
         - event: BatchPayoutSuccessful(indexed address)
           handler: handleBatchPayoutSuccessful
       file: ./src/payout/implementation.ts
-        
+
+  - kind: file/ipfs 
+    name: RoundMetaData  
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/round/metadata.ts
+      handler: handleMetadata
+      entities:
+        - RoundMetaData
+      abis:
+        - name: RoundFactory
+          file: ./abis/RoundFactory.json
+      
   ####################
   # == LEGACY ABI == #
   ####################
@@ -269,7 +282,7 @@ templates:
       abi: QuadraticFundingVotingStrategyImplementationLegacyV1
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - QFVote

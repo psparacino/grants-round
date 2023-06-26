@@ -9,7 +9,7 @@ import {
   log,
 } from "matchstick-as/assembly/index";
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { handleVote } from "../../../src/votingStrategy/quadraticFundingRelay/implementation";
+import { handleRelayVote } from "../../../src/votingStrategy/quadraticFundingRelay/implementation";
 import { Voted as VotedEvent } from "../../../generated/QuadraticFundingRelayStrategy/QuadraticFundingRelayStrategyImplementation";
 import {
   QFVote,
@@ -80,7 +80,7 @@ function createNewVotedEvent(
   return newVoteEvent;
 }
 
-describe("handleVote", () => {
+describe("handleRelayVote", () => {
   beforeEach(() => {
     amount = new BigInt(1);
     token = Address.fromString("0xA16081F360e3847006dB660bae1c6d1b2e17eC2A");
@@ -168,8 +168,8 @@ describe("handleVote", () => {
     clearStore();
   });
 
-  test("QFVote entity is created when handleVote is called", () => {
-    handleVote(newVoteEvent);
+  test("QFVote entity is created when handleRelayVote is called", () => {
+    handleRelayVote(newVoteEvent);
 
     const id = generateID([
       newVoteEvent.transaction.hash.toHex(),
@@ -183,8 +183,8 @@ describe("handleVote", () => {
     assert.stringEquals(qfVote!.id, id);
   });
 
-  test("init values are set correctly when handleVote is called", () => {
-    handleVote(newVoteEvent);
+  test("init values are set correctly when handleRelayVote is called", () => {
+    handleRelayVote(newVoteEvent);
 
     const id = generateID([
       newVoteEvent.transaction.hash.toHex(),
@@ -202,7 +202,7 @@ describe("handleVote", () => {
   });
 
   test("QF vote is linked to VotingStrategy when handledVote is called", () => {
-    handleVote(newVoteEvent);
+    handleRelayVote(newVoteEvent);
 
     const id = generateID([
       newVoteEvent.transaction.hash.toHex(),
@@ -230,8 +230,8 @@ describe("handleVote", () => {
       votingStrategyAddress
     );
 
-    handleVote(newVoteEvent);
-    handleVote(anotherVoteEvent);
+    handleRelayVote(newVoteEvent);
+    handleRelayVote(anotherVoteEvent);
 
     const id = generateID([
       newVoteEvent.transaction.hash.toHex(),
@@ -247,7 +247,7 @@ describe("handleVote", () => {
   });
 
   test("QFVote is logged to the QuadraticTipping entity", () => {
-    handleVote(newVoteEvent);
+    handleRelayVote(newVoteEvent);
 
     const id = generateID([
       newVoteEvent.transaction.hash.toHex(),

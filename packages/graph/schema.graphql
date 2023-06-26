@@ -66,6 +66,15 @@ type Round @entity {
   updatedAt: BigInt!
 }
 
+# id = round.MetaPtr.pointer
+type RoundMetaData @entity {
+  id: ID!
+  name: String!
+  supportEmail: String!
+  description: String!
+  requirements: [String!]!
+}
+
 # id = round.toHex()-role.toHex()
 type RoundRole @entity {
   id: ID!

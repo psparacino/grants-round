@@ -23,6 +23,7 @@
     "build": "graph build",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ psparacino/quadratic-lenster-dev",
     "deploy-dev": "yarn prepare:mumbai && yarn codegen && yarn build && graph deploy --node https://api.thegraph.com/deploy/ psparacino/quadratic-lenster-dev",
+    "deploy-dev-test": "yarn prepare:mumbai && yarn codegen && yarn build && graph deploy --node https://api.thegraph.com/deploy/ psparacino/quadratic-lenster-mumbai --debug",
     "deploy-local-node": "yarn create-local && yarn prepare:local && yarn codegen && yarn build && yarn deploy-local", 
     "create-local": "graph create --node http://localhost:8020/ psparacino/quadratic-lenster-dev",
     "remove-local": "graph remove --node http://localhost:8020/ psparacino/quadratic-lenster-dev",
