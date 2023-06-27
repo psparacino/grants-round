@@ -69,11 +69,7 @@ function createTestnetConfig(
     url = `https://${network}.infura.io/v3/${infuraIdKey}`;
   }
   return {
-    accounts: {
-      count: 10,
-      mnemonic,
-      path: "m/44'/60'/0'/0",
-    },
+    accounts: [deployPrivateKey],
     chainId: chainIds[network],
     allowUnlimitedContractSize: true,
     url,

@@ -13,11 +13,7 @@ import {
 } from "../../generated/templates";
 import { RoundImplementation as RoundImplementationContract } from "../../generated/templates/RoundImplementation/RoundImplementation";
 import { updateMetaPtr } from "../utils";
-import {
-  log,
-  BigInt,
-} from "@graphprotocol/graph-ts";
-
+import { log, BigInt } from "@graphprotocol/graph-ts";
 
 /**
  * @dev Handles indexing on RoundCreatedEvent event.
@@ -56,8 +52,6 @@ export function handleRoundCreated(event: RoundCreatedEvent): void {
   );
   let roundMetaPtr = roundContract.roundMetaPtr();
 
-  const pointer = roundMetaPtr.getPointer().toString();
-
   let metaPtr = updateMetaPtr(
     roundMetaPtrId,
     roundMetaPtr.getProtocol().toI32(),
@@ -65,11 +59,17 @@ export function handleRoundCreated(event: RoundCreatedEvent): void {
   );
   round.roundMetaPtr = metaPtr.id;
 
-  log.info("before", []);
-
+  const pointer = roundMetaPtr.getPointer().toString();
+ 
+  log.info("roundAddress {}, pointer: {}", [
+    roundContractAddress.toHexString(),
+    pointer,
+  ]);
+  
   RoundMetaDataTemplate.create(pointer);
 
-  log.info("after", []);
+  
+
 
   // set applicationsMetaPtr
   const applicationsMetaPtrId = [

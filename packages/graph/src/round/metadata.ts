@@ -7,11 +7,10 @@ import {
 } from "@graphprotocol/graph-ts";
 import { RoundMetaData } from "../../generated/schema";
 
-export function handleMetadata(content: Bytes): void {
-  log.info("hit", []);
-  log.info("handleMetadata log: {}", [dataSource.stringParam()]);
+export function handleMetaData(content: Bytes): void {
+  log.info("handleMetadata fired: {}", [dataSource.stringParam()]);
   let roundMetadata = new RoundMetaData(dataSource.stringParam());
-  
+
   const value = json.fromBytes(content).toObject();
 
   roundMetadata.id = dataSource.stringParam();
@@ -21,40 +20,52 @@ export function handleMetadata(content: Bytes): void {
   roundMetadata.supportEmail = "";
 
   if (value) {
-    log.info("value hit", []);
     const name = value.get("name");
 
-    const eligibility = value.get("eligibility");
-    const support = value.get("support");
-
-    if (name && eligibility && support) {
-      log.info("hitname: {}", [name.toString()]);
+    if (name) {
+      log.info("handleMetaData name {}", [name.toString()]);
       roundMetadata.name = name.toString();
-      roundMetadata.supportEmail = "";
-      if (support) {
-        const supportObject = support.toObject();
+    }
+
+    const support = value.get("support");
+    roundMetadata.supportEmail = "";
+
+    if (support && support.kind == JSONValueKind.OBJECT) {
+      const supportObject = support.toObject();
+      if (supportObject.isSet("info")) {
         const info = supportObject.get("info");
 
-        if (info) {
+        if (info && info.kind == JSONValueKind.STRING) {
+          log.info("handleMetaData support info {}", [info.toString()]);
           roundMetadata.supportEmail = info.toString();
         }
       }
+    }
 
+    const eligibility = value.get("eligibility");
+    roundMetadata.requirements = [];
+
+    if (eligibility && eligibility.kind == JSONValueKind.OBJECT) {
       const eligibilityObject = eligibility.toObject();
-      const description = eligibilityObject.get("description");
-      const requirementsJSON = eligibilityObject.get("requirements");
 
-      if (requirementsJSON && description) {
-        log.info("description: {}", [description.toString()]);
-        roundMetadata.description = description ? description.toString() : "";
+      if (eligibilityObject.isSet("description")) {
+        const description = eligibilityObject.get("description");
+        if (description) {
+          log.info("description: {}", [description.toString()]);
+          roundMetadata.description = description ? description.toString() : "";
+        }
+      }
 
-        if (requirementsJSON.kind == JSONValueKind.ARRAY) {
-          const requirementsArray = requirementsJSON.toArray();
+      const requirementsArray = eligibilityObject.get("requirements");
+
+      if (requirementsArray) {
+        if (requirementsArray.kind == JSONValueKind.ARRAY) {
+          const requirementsConverted = requirementsArray.toArray();
           let requirements: string[] = [];
 
-          for (let i = 0; i < requirementsArray.length; i++) {
-            if (requirementsArray[i].kind == JSONValueKind.OBJECT) {
-              let requirementObject = requirementsArray[i].toObject();
+          for (let i = 0; i < requirementsConverted.length; i++) {
+            if (requirementsConverted[i].kind == JSONValueKind.OBJECT) {
+              let requirementObject = requirementsConverted[i].toObject();
               let requirement = requirementObject.get("requirement");
 
               if (requirement && requirement.kind == JSONValueKind.STRING) {
@@ -68,11 +79,10 @@ export function handleMetadata(content: Bytes): void {
       }
     }
 
-    
+    log.info("before save", []);
+    log.info("final check: {}", [roundMetadata.name.toString()]);
+    log.info("final check: {}", [roundMetadata.description.toString()]);
+    log.info("final check: {}", [roundMetadata.supportEmail.toString()]);
+    roundMetadata.save();
   }
-  log.info("before save", [])
-  log.info("final check: {}", [roundMetadata.name.toString()]  );
-  log.info("final check: {}", [roundMetadata.description.toString()]  );
-  log.info("final check: {}", [roundMetadata.supportEmail.toString()]  );
-  roundMetadata.save();
 }

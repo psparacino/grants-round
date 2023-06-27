@@ -61,7 +61,7 @@ export async function main() {
   const applicationsStartTime = Math.round(new Date().getTime() / 1000 + 50); // 1 hour later
   const applicationsEndTime = Math.round(new Date().getTime() / 1000 + 86400); // 1 day later
   const roundStartTime = Math.round(new Date().getTime() / 1000 + 100); // 2 days later
-  const roundEndTime = Math.round(new Date().getTime() / 1000 + 864000); // 10 days later
+  const roundEndTime = 	1687807702; // 10 days later
     
   const params = [
     votingContract, // _votingStrategyAddress

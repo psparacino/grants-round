@@ -46,6 +46,7 @@ dataSources:
         - Round
         - QuadraticTipping
         - QuadraticTippingDistribution
+        - RoundMetaData
       abis:
         - name: RoundFactory
           file: ./abis/RoundFactory.json
@@ -257,13 +258,13 @@ templates:
           handler: handleBatchPayoutSuccessful
       file: ./src/payout/implementation.ts
 
-  - kind: file/ipfs 
-    name: RoundMetaData  
+  - name: RoundMetaData 
+    kind: file/ipfs    
     mapping:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/round/metadata.ts
-      handler: handleMetadata
+      handler: handleMetaData
       entities:
         - RoundMetaData
       abis:
