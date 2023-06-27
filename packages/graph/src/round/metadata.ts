@@ -79,10 +79,9 @@ export function handleMetaData(content: Bytes): void {
       }
     }
 
-    log.info("before save", []);
-    log.info("final check: {}", [roundMetadata.name.toString()]);
-    log.info("final check: {}", [roundMetadata.description.toString()]);
-    log.info("final check: {}", [roundMetadata.supportEmail.toString()]);
+    log.info("final handleMetaData check: {}", [roundMetadata.name.toString()]);
+    log.info("final handleMetaData check: {}", [roundMetadata.description.toString()]);
+    log.info("final handleMetaData check: {}", [roundMetadata.supportEmail.toString()]);
     roundMetadata.save();
   }
 }
