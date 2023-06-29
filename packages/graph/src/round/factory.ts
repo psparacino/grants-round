@@ -6,6 +6,7 @@ import {
   VotingStrategy,
   QuadraticTipping,
   QuadraticTippingDistribution,
+  RoundMetaData,
 } from "../../generated/schema";
 import {
   RoundImplementation,
@@ -60,16 +61,13 @@ export function handleRoundCreated(event: RoundCreatedEvent): void {
   round.roundMetaPtr = metaPtr.id;
 
   const pointer = roundMetaPtr.getPointer().toString();
- 
+
   log.info("roundAddress {}, pointer: {}", [
     roundContractAddress.toHexString(),
     pointer,
   ]);
-  
+
   RoundMetaDataTemplate.create(pointer);
-
-  
-
 
   // set applicationsMetaPtr
   const applicationsMetaPtrId = [

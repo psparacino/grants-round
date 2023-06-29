@@ -11,13 +11,15 @@ export function handleMetaData(content: Bytes): void {
   log.info("handleMetadata fired: {}", [dataSource.stringParam()]);
   let roundMetadata = new RoundMetaData(dataSource.stringParam());
 
-  const value = json.fromBytes(content).toObject();
-
   roundMetadata.id = dataSource.stringParam();
   roundMetadata.name = "";
   roundMetadata.description = "";
   roundMetadata.requirements = [];
   roundMetadata.supportEmail = "";
+
+
+  const value = json.fromBytes(content).toObject();
+
 
   if (value) {
     const name = value.get("name");
