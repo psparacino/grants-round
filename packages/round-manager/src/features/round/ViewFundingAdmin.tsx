@@ -88,7 +88,12 @@ function InformationContent(props: {
     }
   }, [distributionMetaPtr, matchingDistributionContract]);
 
-  const { data, error, loading, refetch: refetchMatchingData } = useRoundMatchData(
+  const {
+    data,
+    error,
+    loading,
+    refetch: refetchMatchingData,
+  } = useRoundMatchData(
     props.chainId,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     props.roundId!
@@ -216,7 +221,7 @@ function InformationTable(props: {
           <thead>
             <tr className="text-left">
               <th>Project Name</th>
-              <th>Project ID</th>
+              <th>Post ID</th>
               <th>No of Contributors</th>
               <th>Matching %</th>
             </tr>
@@ -227,11 +232,16 @@ function InformationTable(props: {
               props.matchingData?.map((data: any) => (
                 <tr key={data.projectId}>
                   <td className="py-2">
-                    {data.projectName.slice(0, 16) + "..."}
+                    <a
+                      style={{ color: "blue" }}
+                      target={"_blank"}
+                      rel="noreferrer"
+                      href={generateLensterPostUri(data.projectId)}
+                    >
+                      Post
+                    </a>
                   </td>
-                  <td className="py-2">
-                    {data.projectId.slice(0, 32) + "..."}
-                  </td>
+                  <td className="py-2">{data.projectId}</td>
                   <td className="py-2">{data.uniqueContributorsCount}</td>
                   <td className="py-2">
                     {data.matchPoolPercentage.toFixed(4) * 100 + "%"}
@@ -732,4 +742,8 @@ function SuccessModalBody() {
       </p>
     </div>
   );
+}
+
+function generateLensterPostUri(postId: string) {
+  return `${process.env.REACT_APP_LENSTER_BASE_URL}/posts/${postId}`;
 }

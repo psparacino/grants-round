@@ -317,7 +317,9 @@ export const updateRoundMatchAmount = async (
     );
 
     // Finalize round
-    const tx = await roundImplementation.updateMatchAmount(ethers.utils.parseEther(Number(amount).toFixed(18)));
+    const tx = await roundImplementation.updateMatchAmount(
+      ethers.utils.parseEther(Number(amount).toFixed(18))
+    );
     const receipt = await tx.wait();
     console.log("✅ Update match amount transaction hash: ", tx.hash);
 
@@ -343,7 +345,10 @@ export const transferFundsToRound = async (
       signerOrProvider
     );
 
-    const tx = await tokenContract.transfer(roundId, ethers.utils.parseEther(Number(amount).toFixed(18)));
+    const tx = await tokenContract.transfer(
+      roundId,
+      ethers.utils.parseEther(Number(amount).toFixed(18))
+    );
     const receipt = await tx.wait();
     console.log("✅ Fund contract transaction hash: ", tx.hash);
     return {

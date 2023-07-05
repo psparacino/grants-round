@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 import { formatUnits } from "ethers/lib/utils";
 import {
   ChainId,
@@ -98,6 +98,16 @@ export const summarizeQFContributions = async (
   return summary;
 };
 
+export const decodePublicationId = (encodedId: string) => {
+  let profileId = encodedId.slice(2, 34);
+  let postId = encodedId.slice(34, 66);
+
+  profileId = '0x' + profileId.slice(0, profileId.lastIndexOf('1'));
+  postId = '0x' + postId.slice(0, postId.lastIndexOf('1'));
+
+  return profileId + '-' + postId;
+};
+
 /**
  * fetchContributionsForRound is an async function that retrieves a
  * list of all votes made in a round identified by
@@ -161,14 +171,7 @@ export const fetchQFContributionsForRound = async (
   }
 
   response.data?.quadraticTipping?.votes.map((vote: QFVotedEvent) => {
-    let projectId: string | undefined;
-    try {
-      const decodedId = vote.projectId.slice(2, 34);
-      const decodedIdWithPrefix = '0x' + decodedId.slice(0, decodedId.lastIndexOf('1'));
-      projectId =  BigNumber.from(decodedIdWithPrefix).toString();
-    } catch (error) {
-      console.log('error', 'invalid project id', vote.projectId);
-    }
+    let projectId = decodePublicationId(vote.projectId);
 
     if (!projectId) {
       return;

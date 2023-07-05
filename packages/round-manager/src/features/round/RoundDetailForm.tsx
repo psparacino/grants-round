@@ -18,7 +18,7 @@ import * as yup from "yup";
 
 import { Program, Round } from "../api/types";
 import { FormContext } from "../common/FormWizard";
-import {Button, Input} from "../common/styles";
+import { Button, Input } from "../common/styles";
 import { FormStepper } from "../common/FormStepper";
 import { Listbox, RadioGroup, Transition } from "@headlessui/react";
 import {
@@ -37,87 +37,90 @@ import { useWallet } from "../common/Auth";
 import moment from "moment";
 import ReactTooltip from "react-tooltip";
 
-const ValidationSchema = (startAsap: boolean) => yup.object().shape({
-  roundMetadata: yup.object({
-    name: yup
-      .string()
-      .required("This field is required.")
-      .min(8, "Round name must be at least 8 characters."),
-    matchingFunds: yup.object({
-      matchingFundsAvailable: yup
-        .number()
-        .typeError("Matching funds available must be valid number.")
-        .moreThan(0, "Matching funds available must be more than zero."),
-      matchingCap: yup
-        .boolean()
-        .required("You must select if you want a matching cap for projects."),
-      matchingCapAmount: yup
-        .number()
-        .transform((value) => (isNaN(value) ? 0 : value))
-        .when("matchingCap", {
-          is: true,
-          then: yup
-            .number()
-            .required("You must provide an amount for the matching cap.")
-            .moreThan(0, "Matching cap amount must be more than zero."),
-        }),
-    }),
-    support: yup.object({
-      type: yup
-        .string()
-        .required("You must select a support type.")
-        .notOneOf(
-          ["Select what type of input."],
-          "You must select a support type."
-        ),
-      info: yup
+const ValidationSchema = (startAsap: boolean) =>
+  yup.object().shape({
+    roundMetadata: yup.object({
+      name: yup
         .string()
         .required("This field is required.")
-        .when("type", {
-          is: "Email",
-          then: yup
-            .string()
-            .email()
-            .required("You must provide a valid email address."),
-        })
-        .when("type", {
-          is: (val: string) => val && val != "Email",
-          then: yup.string().url().required("You must provide a valid URL."),
-        }),
+        .min(8, "Round name must be at least 8 characters."),
+      matchingFunds: yup.object({
+        matchingFundsAvailable: yup
+          .number()
+          .typeError("Matching funds available must be valid number.")
+          .moreThan(0, "Matching funds available must be more than zero."),
+        matchingCap: yup
+          .boolean()
+          .required("You must select if you want a matching cap for projects."),
+        matchingCapAmount: yup
+          .number()
+          .transform((value) => (isNaN(value) ? 0 : value))
+          .when("matchingCap", {
+            is: true,
+            then: yup
+              .number()
+              .required("You must provide an amount for the matching cap.")
+              .moreThan(0, "Matching cap amount must be more than zero."),
+          }),
+      }),
+      support: yup.object({
+        type: yup
+          .string()
+          .required("You must select a support type.")
+          .notOneOf(
+            ["Select what type of input."],
+            "You must select a support type."
+          ),
+        info: yup
+          .string()
+          .required("This field is required.")
+          .when("type", {
+            is: "Email",
+            then: yup
+              .string()
+              .email()
+              .required("You must provide a valid email address."),
+          })
+          .when("type", {
+            is: (val: string) => val && val != "Email",
+            then: yup.string().url().required("You must provide a valid URL."),
+          }),
+      }),
     }),
-  }),
-  ...(startAsap ? {} : {
-    roundStartTime: yup
-      .date()
-      .required("This field is required.")
-      .min(
-        yup.ref("applicationsStartTime"),
-        "Round start date must be later than applications start date"
+    ...(startAsap
+      ? {}
+      : {
+          roundStartTime: yup
+            .date()
+            .required("This field is required.")
+            .min(
+              yup.ref("applicationsStartTime"),
+              "Round start date must be later than applications start date"
+            ),
+        }),
+    roundEndTime: startAsap
+      ? yup.date()
+      : yup
+          .date()
+          .min(
+            yup.ref("roundStartTime"),
+            "Round end date must be later than the round start date"
+          ),
+    token: yup
+      .string()
+      .required("You must select a payout token for your round.")
+      .notOneOf(
+        ["Choose Payout Token"],
+        "You must select a payout token for your round."
       ),
-  }),
-  roundEndTime: startAsap
-    ? yup.date()
-    : yup
-      .date()
-      .min(
-        yup.ref("roundStartTime"),
-        "Round end date must be later than the round start date"
+    votingStrategy: yup
+      .string()
+      .required("You must select a voting strategy for your round.")
+      .notOneOf(
+        ["Choose Voting Strategy"],
+        "You must select a voting strategy for your round."
       ),
-  token: yup
-    .string()
-    .required("You must select a payout token for your round.")
-    .notOneOf(
-      ["Choose Payout Token"],
-      "You must select a payout token for your round."
-    ),
-  votingStrategy: yup
-    .string()
-    .required("You must select a voting strategy for your round.")
-    .notOneOf(
-      ["Choose Voting Strategy"],
-      "You must select a voting strategy for your round."
-    ),
-});
+  });
 
 interface RoundDetailFormProps {
   stepper: typeof FormStepper;
@@ -181,10 +184,7 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
     const isQFRelayRound = watch("votingStrategy") === "QFRelay";
     // TODO: Make this honor selected round end time when deploying to prod
     const startASAPTimes = {
-      roundStartTime: moment()
-        .add(4, "minutes")
-        .startOf("minute")
-        .toDate(),
+      roundStartTime: moment().add(4, "minutes").startOf("minute").toDate(),
     };
 
     const qfRelayTimes = {
@@ -192,10 +192,10 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
         .add(2, "minutes")
         .startOf("minute")
         .toDate(),
-        applicationsEndTime: moment()
-      .add(3, "minutes")
-      .startOf("minute")
-      .toDate(),
+      applicationsEndTime: moment()
+        .add(3, "minutes")
+        .startOf("minute")
+        .toDate(),
     };
 
     const data = {
@@ -217,10 +217,9 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
   //   return current.isAfter(yesterday);
   // };
 
-
   function disableBeforeRoundStartDate(current: moment.Moment) {
     if (startASAP) {
-      return current.isAfter(moment().startOf('day'));
+      return current.isAfter(moment().startOf("day"));
     }
     return current.isAfter(roundStartDate);
   }
@@ -316,8 +315,7 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
                 </div>
 
                 <p className="mt-6 mb-4 text-sm">
-                  What are the dates for the Round voting
-                  period?
+                  What are the dates for the Round voting period?
                   <ApplicationDatesInformation />
                 </p>
 
@@ -329,70 +327,78 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
                 </p>
                 <div className="grid grid-cols-6 gap-6">
                   <div className="col-span-12">
-                    <Button className={`w-full`} $variant={startASAP ? "solid" : "outline"} onClick={() => setStartASAP(currentVal => !currentVal)}>{startASAP ? "Starting ASAP" : "Set to start ASAP"}</Button>
-                  </div>
-                  {!startASAP && (<div className="col-span-6 sm:col-span-3">
-                    <div
-                      className={`relative border rounded-md px-3 py-2 mb-2 shadow-sm focus-within:ring-1 ${
-                        errors.roundStartTime
-                          ? "border-red-300 text-red-900 placeholder-red-300 focus-within:outline-none focus-within:border-red-500 focus-within: ring-red-500"
-                          : "border-gray-300 focus-within:border-indigo-600 focus-within:ring-indigo-600"
-                      }`}
+                    <Button
+                      className={`w-full`}
+                      $variant={startASAP ? "solid" : "outline"}
+                      onClick={() => setStartASAP((currentVal) => !currentVal)}
                     >
-                      <label
-                        htmlFor="roundStartTime"
-                        className="block text-[10px]"
+                      {startASAP ? "Starting ASAP" : "Set to start ASAP"}
+                    </Button>
+                  </div>
+                  {!startASAP && (
+                    <div className="col-span-6 sm:col-span-3">
+                      <div
+                        className={`relative border rounded-md px-3 py-2 mb-2 shadow-sm focus-within:ring-1 ${
+                          errors.roundStartTime
+                            ? "border-red-300 text-red-900 placeholder-red-300 focus-within:outline-none focus-within:border-red-500 focus-within: ring-red-500"
+                            : "border-gray-300 focus-within:border-indigo-600 focus-within:ring-indigo-600"
+                        }`}
                       >
-                        Start Date
-                      </label>
-                      <Controller
-                        control={control}
-                        name="roundStartTime"
-                        render={({ field }) => (
-                          <Datetime
-                            {...field}
-                            closeOnSelect
-                            onChange={(date) => {
-                              setRoundStartDate(moment(date));
-                              field.onChange(moment(date));
-                            }}
-                            inputProps={{
-                              id: "roundStartTime",
-                              placeholder: "",
-                              className:
-                                "block w-full border-0 p-0 text-gray-900 placeholder-grey-400 focus:ring-0 text-sm disabled:opacity-50 disabled:text-gray-500",
-                              disabled: startASAP,
-                            }}
-                            utc={true}
-                            dateFormat={"YYYY-MM-DD"}
-                            timeFormat={"HH:mm UTC"}
-                          />
-                        )}
-                      />
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
+                        <label
+                          htmlFor="roundStartTime"
+                          className="block text-[10px]"
                         >
-                          <path
-                            fillRule="evenodd"
-                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+                          Start Date
+                        </label>
+                        <Controller
+                          control={control}
+                          name="roundStartTime"
+                          render={({ field }) => (
+                            <Datetime
+                              {...field}
+                              closeOnSelect
+                              onChange={(date) => {
+                                setRoundStartDate(moment(date));
+                                field.onChange(moment(date));
+                              }}
+                              inputProps={{
+                                id: "roundStartTime",
+                                placeholder: "",
+                                className:
+                                  "block w-full border-0 p-0 text-gray-900 placeholder-grey-400 focus:ring-0 text-sm disabled:opacity-50 disabled:text-gray-500",
+                                disabled: startASAP,
+                              }}
+                              utc={true}
+                              dateFormat={"YYYY-MM-DD"}
+                              timeFormat={"HH:mm UTC"}
+                            />
+                          )}
+                        />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
                       </div>
+                      {errors.roundStartTime && (
+                        <p
+                          className="text-xs text-pink-500"
+                          data-testid="round-start-date-error"
+                        >
+                          {errors.roundStartTime?.message}
+                        </p>
+                      )}
                     </div>
-                    {errors.roundStartTime && (
-                      <p
-                        className="text-xs text-pink-500"
-                        data-testid="round-start-date-error"
-                      >
-                        {errors.roundStartTime?.message}
-                      </p>
-                    )}
-                  </div>)}
+                  )}
 
                   <div className="col-span-6 sm:col-span-3">
                     <div

@@ -132,6 +132,25 @@ export default function ViewRoundPage() {
                                 : "flex flex-row"
                             }
                           >
+                            <DocumentReportIcon className="h-6 w-6 mr-2" />
+                            <span
+                              className="mt-0.5"
+                              data-testid="funding-admin"
+                            >
+                              Funding Admin
+                            </span>
+                          </div>
+                        )}
+                      </Tab>
+                      <Tab className={({ selected }) => tabStyles(selected)}>
+                        {({ selected }) => (
+                          <div
+                            className={
+                              selected
+                                ? "text-black-500 flex flex-row"
+                                : "flex flex-row"
+                            }
+                          >
                             <InboxIcon className="h-6 w-6 mr-2" />
                             <span
                               className="mt-0.5"
@@ -158,28 +177,16 @@ export default function ViewRoundPage() {
                           </div>
                         )}
                       </Tab>
-                      <Tab className={({ selected }) => tabStyles(selected)}>
-                        {({ selected }) => (
-                          <div
-                            className={
-                              selected
-                                ? "text-black-500 flex flex-row"
-                                : "flex flex-row"
-                            }
-                          >
-                            <DocumentReportIcon className="h-6 w-6 mr-2" />
-                            <span
-                              className="mt-0.5"
-                              data-testid="funding-admin"
-                            >
-                              Funding Admin
-                            </span>
-                          </div>
-                        )}
-                      </Tab>
                     </Tab.List>
                   </div>
                   <Tab.Panels className="basis-5/6 ml-6">
+                    <Tab.Panel>
+                      <ViewFundingAdmin
+                        round={round}
+                        chainId={`${chain.id}`}
+                        roundId={id}
+                      />
+                    </Tab.Panel>
                     <Tab.Panel>
                       <GrantApplications
                         applications={applications}
@@ -193,13 +200,6 @@ export default function ViewRoundPage() {
                       <ViewRoundStats
                         roundStats=""
                         isRoundStatsFetched={true}
-                      />
-                    </Tab.Panel>
-                    <Tab.Panel>
-                      <ViewFundingAdmin
-                        round={round}
-                        chainId={`${chain.id}`}
-                        roundId={id}
                       />
                     </Tab.Panel>
                   </Tab.Panels>
