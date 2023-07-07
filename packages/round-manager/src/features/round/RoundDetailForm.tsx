@@ -99,13 +99,13 @@ const ValidationSchema = (startAsap: boolean) =>
             ),
         }),
     roundEndTime: startAsap
-      ? yup.date()
+      ? yup.date().required('This field is required.')
       : yup
           .date()
           .min(
             yup.ref("roundStartTime"),
             "Round end date must be later than the round start date"
-          ),
+          ).required('This field is required.'),
     token: yup
       .string()
       .required("You must select a payout token for your round.")
