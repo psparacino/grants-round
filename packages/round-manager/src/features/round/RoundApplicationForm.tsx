@@ -39,6 +39,7 @@ import { Switch } from "@headlessui/react";
 import ReactTooltip from "react-tooltip";
 import { Button } from "../common/styles";
 import InfoModal from "../common/InfoModal";
+import moment from "moment/moment";
 
 const payoutQuestion: QuestionOptions = {
   title: "Payout Wallet Address",
@@ -76,8 +77,12 @@ export function RoundApplicationForm(props: {
   const [openProgressModal, setOpenProgressModal] = useState(false);
   const [openHeadsUpModal, setOpenHeadsUpModal] = useState(false);
 
-  const { currentStep, setCurrentStep, stepsCount, formData } =
-    useContext(FormContext);
+  const {
+    currentStep,
+    setCurrentStep,
+    stepsCount,
+    formData: formDataWithAsap,
+  } = useContext(FormContext);
   const Steps = props.stepper;
   const [openErrorModal, setOpenErrorModal] = useState(false);
 
@@ -86,6 +91,10 @@ export function RoundApplicationForm(props: {
   const programId = new URLSearchParams(search).get("programId") as string;
 
   const navigate = useNavigate();
+
+  const { startASAP, ...formData } = formDataWithAsap as {
+    startASAP: boolean;
+  } & object;
 
   const defaultQuestions: ApplicationMetadata["questions"] =
     // @ts-expect-error TODO: either fix this or refactor the whole formstepper
@@ -183,7 +192,26 @@ export function RoundApplicationForm(props: {
 
     try {
       setOpenProgressModal(true);
-      const data: Partial<Round> = { ...formData, ...values };
+      const data: Partial<Round> = {
+        ...formData,
+        ...values,
+        applicationsStartTime: moment()
+          .add(2, "minutes")
+          .startOf("minute")
+          .toDate(),
+        applicationsEndTime: moment()
+          .add(3, "minutes")
+          .startOf("minute")
+          .toDate(),
+        ...(startASAP
+          ? {
+              roundStartTime: moment()
+                .add(4, "minutes")
+                .startOf("minute")
+                .toDate(),
+            }
+          : {}),
+      };
 
       const roundMetadataWithProgramContractAddress: Round["roundMetadata"] = {
         ...(data.roundMetadata as Round["roundMetadata"]),
