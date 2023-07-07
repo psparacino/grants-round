@@ -87,25 +87,15 @@ const ValidationSchema = (startAsap: boolean) =>
           }),
       }),
     }),
-    ...(startAsap
-      ? {}
-      : {
-          roundStartTime: yup
-            .date()
-            .required("This field is required.")
-            .min(
-              yup.ref("applicationsStartTime"),
-              "Round start date must be later than applications start date"
-            ),
-        }),
     roundEndTime: startAsap
-      ? yup.date().required('This field is required.')
+      ? yup.date().required("This field is required.")
       : yup
           .date()
           .min(
             yup.ref("roundStartTime"),
             "Round end date must be later than the round start date"
-          ).required('This field is required.'),
+          )
+          .required("This field is required."),
     token: yup
       .string()
       .required("You must select a payout token for your round.")
@@ -182,30 +172,10 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
   const [roundStartDate, setRoundStartDate] = useState(moment());
 
   const next: SubmitHandler<Round> = async (values) => {
-    const isQFRelayRound = watch("votingStrategy") === "QFRelay";
-    // TODO: Make this honor selected round end time when deploying to prod
-    const startASAPTimes = {
-      roundStartTime: moment().add(4, "minutes").startOf("minute").toDate(),
-    };
-
-    const qfRelayTimes = {
-      applicationsStartTime: moment()
-        .add(2, "minutes")
-        .startOf("minute")
-        .toDate(),
-      applicationsEndTime: moment()
-        .add(3, "minutes")
-        .startOf("minute")
-        .toDate(),
-    };
-
     const data = {
       ...formData,
       ...values,
-      // If it's a relay round, "ignore" application period
-      ...(isQFRelayRound ? qfRelayTimes : {}),
-      // If start ASAP, set start times to now
-      ...(startASAP ? startASAPTimes : {}),
+      startASAP,
     };
     setFormData(data);
     setCurrentStep(currentStep + 1);

@@ -175,7 +175,8 @@ function DynamicRequirementsForm(props: {
   return (
     <div>
       <p className="text-grey-400 mb-6">
-        Add any required texts or hashtags (e.g. #ethcc) that are required in posts to take part in this round.
+        Add any required texts or hashtags (e.g. #ethcc) that are required in
+        posts to take part in this round.
       </p>
       <ul>
         {fields.map((item, index) => (
