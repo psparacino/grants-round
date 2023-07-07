@@ -142,6 +142,7 @@ export function RoundDetailForm(props: RoundDetailFormProps) {
   const methods = useForm<Round>({
     defaultValues: {
       ...formData,
+      votingStrategy: "QFRelay",
       roundMetadata: defaultRoundMetadata,
     },
     resolver: yupResolver(ValidationSchema(startASAP)),
@@ -761,7 +762,7 @@ function VotingStrategyDropdown(props: {
   const { getValues } = useFormContext();
   const formValues = getValues();
   return (
-    <div className="relative col-span-6 sm:col-span-3">
+    <div className="relative hidden col-span-6 sm:col-span-3">
       <Listbox {...field}>
         {({ open }) => (
           <div>
