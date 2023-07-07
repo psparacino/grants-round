@@ -175,7 +175,7 @@ function DynamicRequirementsForm(props: {
   return (
     <div>
       <p className="text-grey-400 mb-6">
-        What requirements do you have for applicants?
+        Add any required texts or hashtags (e.g. #ethcc) that are required in posts to take part in this round.
       </p>
       <ul>
         {fields.map((item, index) => (
@@ -185,7 +185,7 @@ function DynamicRequirementsForm(props: {
                 htmlFor={`Requirement ${index + 1}`}
                 className="block text-sm"
               >
-                {`Requirement ${index + 1}`}
+                {`Required content ${index + 1}`}
               </label>
               <span className="text-xs text-grey-400">Optional</span>
             </div>
@@ -194,7 +194,7 @@ function DynamicRequirementsForm(props: {
                 `roundMetadata.eligibility.requirements.${index}.requirement`
               )}
               type="text"
-              placeholder="Enter an eligibility requirement."
+              placeholder="#ethcc"
               data-testid="requirement-input"
             />
           </li>
@@ -209,7 +209,7 @@ function DynamicRequirementsForm(props: {
         }}
       >
         <PlusSmIcon className="h-5 w-5 mr-1" aria-hidden="true" />
-        Add A Requirement
+        Add more required content
       </Button>
     </div>
   );
