@@ -8,6 +8,7 @@ import { updateRoundMatchHandler } from "../../handlers/updateRoundMatchHandler"
 import { getProjectMatchDataHandler } from "../../handlers/getProjectMatchDataHandler";
 import { getRoundMatchDataHandler } from "../../handlers/getRoundMatchDataHandler";
 import { getProjectSummariesDataHandler } from "../../handlers/getProjectSummariesDataHandler";
+import {getProjectMatchDataByProjectIdsHandler} from "../../handlers/getProjectMatchDataByProjectIdsHandler";
 
 const router = Router();
 
@@ -44,6 +45,8 @@ router.get(
   "/data/match/project/:chainId/:roundId/:projectId",
   getProjectMatchDataHandler
 );
+
+router.get("/data/match/round/projectIds/:chainId/:roundId", getProjectMatchDataByProjectIdsHandler);
 router.get("/data/match/round/:chainId/:roundId", getRoundMatchDataHandler);
 
 export default router;
