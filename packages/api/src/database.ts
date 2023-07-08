@@ -303,6 +303,23 @@ export class DatabaseInstance {
     }
   }
 
+  async getProjectMatchDataByProjectIds(roundId: string, publicationIds: string[]): Promise<Result> {
+    try {
+      const result = await this.client.match.findMany({
+        where: {
+          roundId: roundId,
+          projectId: {
+            in: publicationIds
+          },
+        },
+      });
+      return {result};
+    } catch (error) {
+      console.error("error getting post match", error);
+      return {error: error, result: null};
+    }
+  }
+
   async getRoundSummaryRecord(roundId: string): Promise<Result> {
     try {
       const result = await this.client.roundSummary.findUnique({
