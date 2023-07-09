@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { formatUnits } from "ethers/lib/utils";
+import {formatEther, formatUnits} from "ethers/lib/utils";
 import {
   ChainId,
   QFContributionSummary,
@@ -34,7 +34,11 @@ export const summarizeQFContributions = async (
     uniqueContributors: 0,
     totalContributionsInUSD: 0,
     averageUSDContribution: 0,
+    totalTippedInToken: '0',
+    averageTipInToken: '0',
   };
+
+  let totalTippedInToken = BigNumber.from("0");
 
   if (contributions.length == 0) {
     return summary;
@@ -53,6 +57,8 @@ export const summarizeQFContributions = async (
     const token = item.token;
     const contributor = item.contributor;
 
+    totalTippedInToken = totalTippedInToken.add(item.amount);
+
     // Initialize the sum for the token if it doesn't exist
     if (!summaryContributions.contributions[token]) {
       summaryContributions.contributions[token] = BigNumber.from("0");
@@ -68,6 +74,9 @@ export const summarizeQFContributions = async (
     summaryContributions.contributions[token] =
       summaryContributions.contributions[token].add(item.amount);
   });
+
+  summary.totalTippedInToken = formatEther(totalTippedInToken);
+  summary.averageTipInToken = formatEther(totalTippedInToken.div(contributions.length));
 
   let totalContributionsInUSD = 0;
 
@@ -386,6 +395,7 @@ export const matchQFContributions = async (
   for (const projectId in contributionsByProject) {
     let sumOfSquares = 0;
     let sumOfContributions = 0;
+    let sumOfContributionsInToken = BigNumber.from(0);
 
     const uniqueContributors = new Set();
 
@@ -394,9 +404,12 @@ export const matchQFContributions = async (
     );
     const projectPayoutAddress = contributionsByProject[projectId].payoutAddress;
     contributions.forEach((contribution) => {
-      const { contributor, usdValue } = contribution;
+      const { contributor, usdValue, amount } = contribution;
 
       uniqueContributors.add(contributor);
+      sumOfContributionsInToken = sumOfContributionsInToken.add(
+        amount
+      );
 
       if (usdValue) {
         sumOfSquares += Math.sqrt(usdValue);
@@ -412,6 +425,7 @@ export const matchQFContributions = async (
       projectId: projectId,
       matchAmountInUSD: matchInUSD,
       totalContributionsInUSD: sumOfContributions,
+      totalContributionsInToken: formatEther(sumOfContributionsInToken),
       matchPoolPercentage: 0, // init to zero
       matchAmountInToken: 0,
       projectPayoutAddress: projectPayoutAddress,

@@ -121,6 +121,7 @@ export class DatabaseInstance {
         uniqueContributorsCount: Number(
           projectMatch.uniqueContributorsCount
         ),
+        totalContributionsInToken: projectMatch.totalContributionsInToken
       }
 
       const roundData = {
@@ -171,6 +172,8 @@ export class DatabaseInstance {
         uniqueContributors: summary.uniqueContributors,
         totalContributionsInUSD: Number(summary.totalContributionsInUSD),
         averageUSDContribution: Number(summary.averageUSDContribution),
+        totalTippedInToken: summary.totalTippedInToken,
+        averageTipInToken: summary.averageTipInToken,
       }
 
       const roundData = {
@@ -186,8 +189,10 @@ export class DatabaseInstance {
         create: roundData,
         update: {
           roundSummary: {
-            create: roundSummaryData,
-            update: roundSummaryData,
+            upsert: {
+              create: roundSummaryData,
+              update: roundSummaryData,
+            }
           }
         }
       });

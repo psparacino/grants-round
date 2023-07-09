@@ -43,18 +43,19 @@ model Project {
 }
 
 model Match {
-  id                      Int      @id @default(autoincrement())
-  createdAt               DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
-  projectId               String
-  matchAmountInUSD        Float
-  totalContributionsInUSD Float
-  matchPoolPercentage     Float
-  matchAmountInToken      Float
-  round                   Round    @relation(fields: [roundId], references: [roundId])
-  roundId                 String
-  projectPayoutAddress    String
-  uniqueContributorsCount Int?
+  id                        Int      @id @default(autoincrement())
+  createdAt                 DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt                 DateTime @updatedAt @db.Timestamptz(3)
+  projectId                 String
+  matchAmountInUSD          Float
+  totalContributionsInUSD   Float
+  totalContributionsInToken String   @default("0")
+  matchPoolPercentage       Float
+  matchAmountInToken        Float
+  round                     Round    @relation(fields: [roundId], references: [roundId])
+  roundId                   String
+  projectPayoutAddress      String
+  uniqueContributorsCount   Int?
 
   @@unique([roundId, projectId], name: "matchIdentifier")
   @@map("match")
@@ -70,6 +71,8 @@ model RoundSummary {
   averageUSDContribution  Float
   round                   Round    @relation(fields: [roundId], references: [roundId])
   roundId                 String
+  totalTippedInToken      String   @default("0")
+  averageTipInToken       String   @default("0")
 
   @@unique([roundId], name: "roundSummaryIdentifier")
   @@map("roundSummary")
