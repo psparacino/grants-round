@@ -1,0 +1,12 @@
+
+{
+    "network": "matic",
+    "startBlock": 44189120, 
+    "programFactoryAddress": "0x6bef29C694Ca94c0640f0D01D5EE5c17C7eAba94",
+    "QFVotingStrategyFactoryAddress": "0x87d50E83799E8f36eDCEe39cA444A7388aee13a2",
+    "QFRelayStrategyFactoryAddress": "0x87d50E83799E8f36eDCEe39cA444A7388aee13a2",
+    "roundFactoryAddress": "0x67c39EF4Ed7b3d252e9Fd6D8a5575F5c1166cDce",
+    "merklePayoutStrategyFactoryAddress": "0xa558eC037B858BbaBBd32f70754c4C818d7835b7"
+  
+  }
+  
