@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
-import { VotingStrategy } from "@prisma/client";
 import { ChainId, QFContributionSummary, RoundMetadata } from "../types";
-import { fetchRoundMetadata, handleResponse } from "../utils";
+import { handleResponse } from "../utils";
 import {
   fetchQFContributionsForRound,
   summarizeQFContributions,
 } from "../votingStrategies/linearQuadraticFunding";
 import { cache } from "../cacheConfig";
-import { db } from "../database";
+import {updateRoundSummary} from "../lib/updateRoundSummary";
 
 /**
  * updateRoundSummaryHandler is a function that handles HTTP requests for summary information for a given round.
@@ -29,59 +28,18 @@ export const updateRoundSummaryHandler = async (
       "error: missing parameter chainId or roundId"
     );
   }
+
   try {
-    roundId = roundId.toLowerCase();
-    const metadata = await fetchRoundMetadata(chainId as ChainId, roundId);
-    const { votingStrategy } = metadata;
+      const result = await updateRoundSummary(chainId as ChainId, roundId);
 
-    const votingStrategyName = votingStrategy.strategyName as VotingStrategy;
-
-    // throw error if voting strategy is not supported
-    if (votingStrategyName !== VotingStrategy.LINEAR_QUADRATIC_FUNDING) {
-      throw "error: unsupported voting strategy";
-    }
-
-    const results = await getRoundSummary(
-      chainId as ChainId,
-      roundId,
-      metadata
-    );
-    try {
-      const upsertRoundStatus = await db.upsertRoundSummaryRecord(
-        chainId,
-        roundId,
-        metadata,
-        results
-      );
-      if (upsertRoundStatus.error) {
-        throw upsertRoundStatus.error;
-      }
-
-      const roundSummary = await db.getRoundSummaryRecord(roundId);
-      if (roundSummary.error) {
-        throw roundSummary.error;
-      }
-
-      cache.set(`cache_${req.originalUrl}`, roundSummary.result);
+      cache.set(`cache_${req.originalUrl}`, result);
 
       return handleResponse(
         res,
         200,
         `${req.originalUrl}`,
-        roundSummary.result
+        result
       );
-    } catch (error) {
-      console.error("updateRoundSummaryHandler", error);
-      const dbFailResults = {
-        id: null,
-        createdAt: null,
-        updatedAt: new Date(),
-        ...results,
-        roundId: roundId,
-      };
-      cache.set(`cache_${req.originalUrl}`, dbFailResults);
-      return handleResponse(res, 200, `${req.originalUrl}`, dbFailResults);
-    }
   } catch (error) {
     console.error("updateRoundSummaryHandler", error);
     return handleResponse(res, 500, "error: something went wrong");
