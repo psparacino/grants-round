@@ -25,6 +25,7 @@
     "@types/jest": "^29.2.4",
     "@types/node": "^14.18.33",
     "@types/node-cache": "^4.2.5",
+    "@types/node-cron": "^3.0.8",
     "@types/node-fetch": "^2.6.2",
     "concurrently": "^7.6.0",
     "dotenv": "^16.0.3",
@@ -44,6 +45,7 @@
     "ethers": "^5.7.2",
     "express": "^4.17.1",
     "node-cache": "^5.1.2",
+    "node-cron": "^3.0.2",
     "node-fetch": "^2.6.6",
     "yup": "^0.32.11"
   },

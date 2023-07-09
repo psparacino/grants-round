@@ -611,3 +611,31 @@ const applyMatchingCap = (
 
   return distribution;
 };
+
+export const fetchActiveRounds = async (chainId: ChainId) => {
+  const unixTimestamp = Math.floor(Date.now() / 1000);
+  const query = `
+    query GetActiveRounds($unixTimestamp: String!) {
+      rounds(
+        where: { roundEndTime_gt: $unixTimestamp }
+        orderBy: createdAt
+        orderDirection: desc
+      ) {
+        id
+        roundEndTime
+        createdAt
+        token
+        roundMetaPtr {
+          id
+          pointer
+        }
+      }
+    }
+  `
+
+  const variables = {unixTimestamp: unixTimestamp.toString()};
+
+  const response = await fetchFromGraphQL(chainId, query, variables);
+  console.log(response.errors);
+  return response.data.rounds as {id: string}[];
+}
