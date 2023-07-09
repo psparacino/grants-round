@@ -5,7 +5,8 @@ import {updateRoundMatch} from "../lib/updateRoundMatch";
 import {updateRoundSummary} from "../lib/updateRoundSummary";
 
 export function setupCronJobs() {
-  cron.schedule('*/60 * * * * *', async () => {
+  cron.schedule('*/20 * * * * *', async () => {
+    const currentTime = new Date();
     console.log('Running update match results cron job every 60 seconds');
 
     const activeChainIds = [ChainId.MUMBAI];
@@ -42,6 +43,9 @@ export function setupCronJobs() {
       console.error('Error updating match results for all active rounds during cron job', error);
     }
 
+    const endTime = new Date();
+    const timeDiff = endTime.getTime() - currentTime.getTime();
+    console.log('Time taken to update match results for all active rounds:', timeDiff / 1000, 's');
     console.log('Finished update match results cron job');
   });
 }
