@@ -45,7 +45,7 @@ export function setupCronJobs() {
 
     const endTime = new Date();
     const timeDiff = endTime.getTime() - currentTime.getTime();
-    console.log('Time taken to update match results for all active rounds:', timeDiff / 1000, 'ms');
+    console.log('Time taken to update match results for all active rounds:', timeDiff / 1000, 's');
     console.log('Finished update match results cron job');
   });
 }
