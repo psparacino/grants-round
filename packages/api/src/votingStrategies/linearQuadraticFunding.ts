@@ -636,6 +636,5 @@ export const fetchActiveRounds = async (chainId: ChainId) => {
   const variables = {unixTimestamp: unixTimestamp.toString()};
 
   const response = await fetchFromGraphQL(chainId, query, variables);
-  console.log(response.errors);
   return response.data.rounds as {id: string}[];
 }
