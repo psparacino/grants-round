@@ -109,12 +109,15 @@ export type QFContributionSummary = {
   uniqueContributors: number;
   totalContributionsInUSD?: number;
   averageUSDContribution?: number;
+  totalTippedInToken: string;
+  averageTipInToken: string;
 };
 
 export type QFDistribution = {
   projectId: string;
   matchAmountInUSD: number;
   totalContributionsInUSD: number;
+  totalContributionsInToken: string;
   matchPoolPercentage: number;
   matchAmountInToken: number;
   projectPayoutAddress: string;

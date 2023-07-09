@@ -2,6 +2,7 @@ import * as cron from 'node-cron';
 import {fetchActiveRounds} from "../votingStrategies/linearQuadraticFunding";
 import {ChainId} from "../types";
 import {updateRoundMatch} from "../lib/updateRoundMatch";
+import {updateRoundSummary} from "../lib/updateRoundSummary";
 
 export function setupCronJobs() {
   cron.schedule('*/60 * * * * *', async () => {
@@ -23,6 +24,15 @@ export function setupCronJobs() {
               chainId,
               'to',
               updateResults
+            );
+            const roundSummaryUpdateResults = await updateRoundSummary(chainId, round.id);
+            console.log(
+              'Updated summary results for round',
+              round.id,
+              'on',
+              chainId,
+              'to',
+              roundSummaryUpdateResults
             );
           }));
         });
