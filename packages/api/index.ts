@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import {initSentry} from "./sentry";
 import routes from "./src/controllers/v1/routes";
+import {setupCronJobs} from "./src/cron-jobs";
 
 dotenv.config();
 
@@ -34,6 +35,8 @@ const server = app.listen(port, () => {
   );
   console.log(`🟢️ [server]: running on : ${port}`);
 });
+
+setupCronJobs();
 
 process.on("SIGINT", () => {
   console.log("😵 SIGINT signal received: closing HTTP server");
