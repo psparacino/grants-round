@@ -367,6 +367,7 @@ export const matchQFContributions = async (
             // all contributions made by contributor to the projectId
             ...contribution, // list of all contributions made by contributor to the projectId
             usdValue: usdAmount, // total USD amount for all contributions made by contributor to the projectId
+            totalAmountInToken: amount,
           },
         },
       };
@@ -379,11 +380,14 @@ export const matchQFContributions = async (
       contributionsByProject[projectId].contributions[contributor] = {
         ...contribution,
         usdValue: usdAmount,
+        totalAmountInToken: amount,
       };
     } else {
       // update total USD amount as this contributor has already made contributions to the project
       contributionsByProject[projectId].contributions[contributor].usdValue += // all contributions made by contributor to the projectId
         usdAmount; // total USD amount for all contributions made by contributor to the projectId
+      contributionsByProject[projectId].contributions[contributor].totalAmountInToken =
+        contributionsByProject[projectId].contributions[contributor].totalAmountInToken.add(amount);
     }
   }
 
@@ -399,16 +403,16 @@ export const matchQFContributions = async (
 
     const uniqueContributors = new Set();
 
-    const contributions: QFContribution[] = Object.values(
+    const contributions: (QFContribution & {totalAmountInToken: BigNumber})[] = Object.values(
       contributionsByProject[projectId].contributions
     );
     const projectPayoutAddress = contributionsByProject[projectId].payoutAddress;
     contributions.forEach((contribution) => {
-      const { contributor, usdValue, amount } = contribution;
+      const { contributor, usdValue, totalAmountInToken } = contribution;
 
       uniqueContributors.add(contributor);
       sumOfContributionsInToken = sumOfContributionsInToken.add(
-        amount
+        totalAmountInToken
       );
 
       if (usdValue) {
@@ -627,11 +631,11 @@ const applyMatchingCap = (
 };
 
 export const fetchActiveRounds = async (chainId: ChainId) => {
-  const unixTimestamp = Math.floor(Date.now() / 1000);
+  const unixTimestamp = Math.floor(Date.now() / 1000 + 60 * 60 * 24 * 7);
   const query = `
     query GetActiveRounds($unixTimestamp: String!) {
       rounds(
-        where: { roundEndTime_gt: $unixTimestamp }
+        where: { roundEndTime_lte: $unixTimestamp }
         orderBy: createdAt
         orderDirection: desc
       ) {
