@@ -157,6 +157,12 @@ export const getPayoutTokenOptions = (chainId: ChainId): PayoutToken[] => {
           address: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
           logo: TokenNamesAndLogos["DAI"],
         },
+        {
+          name: "DragonHoard",
+          chainId: ChainId.POLYGON_MUMBAI_CHAIN_ID,
+          address: "0xe25c884582474C4Ac87E1B5BeE4288d4F3B19C96",
+          logo: TokenNamesAndLogos["BUSD"],
+        },
       ];
     }
     case ChainId.GOERLI_CHAIN_ID:
