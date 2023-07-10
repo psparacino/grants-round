@@ -64,6 +64,16 @@ export async function finalizeRoundToContract({
       signerOrProvider
     );
 
+    const isReadyForPayout =
+      await merklePayoutImplementation.isReadyForPayout();
+
+    if (isReadyForPayout) {
+      console.log("✅ Merkle Payout Strategy is ready for payout");
+      return {
+        transactionBlockNumber: undefined,
+      };
+    }
+
     // Finalize round
     const tx = await merklePayoutImplementation.updateDistribution(
       encodedDistribution

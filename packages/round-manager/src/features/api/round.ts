@@ -16,7 +16,6 @@ import { ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 import { Signer } from "@ethersproject/abstract-signer";
 import erc20Abi from "./abi/erc20";
-import merklePayoutStrategy from "./abi/payoutStrategy/merklePayoutStrategy";
 
 /**
  * Fetch a round by ID
@@ -507,9 +506,26 @@ export async function setRoundReadyForPayout({
   try {
     const roundImplementation = new ethers.Contract(
       roundId,
-      merklePayoutStrategy,
+      roundImplementationContract.abi,
       signerOrProvider
     );
+
+    const payoutStrategy = await roundImplementation.payoutStrategy();
+
+    const payoutImplementation = new ethers.Contract(
+      payoutStrategy,
+      payoutStrategyContract.abi,
+      signerOrProvider
+    );
+
+    const isReadyForPayout = await payoutImplementation.isReadyForPayout();
+
+    if (isReadyForPayout) {
+      console.log("✅ Round is already ready for payout");
+      return {
+        transactionBlockNumber: undefined,
+      };
+    }
 
     // Finalize round
     const tx = await roundImplementation.setReadyForPayout({ value: 100 });
