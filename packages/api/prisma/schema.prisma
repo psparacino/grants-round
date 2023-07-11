@@ -52,6 +52,7 @@ model Match {
   totalContributionsInToken String   @default("0")
   matchPoolPercentage       Float
   matchAmountInToken        Float
+  matchAmount               String   @default("0")
   round                     Round    @relation(fields: [roundId], references: [roundId])
   roundId                   String
   projectPayoutAddress      String
