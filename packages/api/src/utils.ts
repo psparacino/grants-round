@@ -499,6 +499,7 @@ export const fetchAverageTokenPrices = async (
       let testnetAverageTokenPrices: any = {
         "0x0000000000000000000000000000000000000000": TESNET_TOKEN_TO_USD_RATE,
         "0x9c3c9283d3e44854697cd22d3faa240cfb032889": TESNET_TOKEN_TO_USD_RATE,
+        "0xe25c884582474c4ac87e1b5bee4288d4f3b19c96": TESNET_TOKEN_TO_USD_RATE
       };
 
       tokenAddresses.map(tokenAddress => {
