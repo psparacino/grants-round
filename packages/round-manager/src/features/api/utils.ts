@@ -461,9 +461,7 @@ export const generateStandardMerkleTree = (distribution: QFDistribution[]) => {
   console.log("Generating merkle tree for distribution: ", distribution);
   const values = distribution.map((item) => [
     item.projectPayoutAddress,
-    BigNumber.from(
-      ethers.utils.parseUnits(Number(item.matchAmountInToken).toFixed(18))
-    ),
+    BigNumber.from(item.matchAmount),
     ethers.utils.formatBytes32String(item.projectId),
   ]);
 

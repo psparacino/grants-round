@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import {formatEther, formatUnits} from "ethers/lib/utils";
+import {formatEther, formatUnits, parseUnits} from "ethers/lib/utils";
 import {
   ChainId,
   QFContributionSummary,
@@ -434,6 +434,7 @@ export const matchQFContributions = async (
       matchAmountInToken: 0,
       projectPayoutAddress: projectPayoutAddress,
       uniqueContributorsCount: uniqueContributors.size,
+      matchAmount: '0'
     });
     totalMatchInUSD += isNaN(matchInUSD) ? 0 : matchInUSD; // TODO: what should happen when matchInUSD is NaN?
     // TODO: Error out if NaN
@@ -465,8 +466,13 @@ export const matchQFContributions = async (
   // the pot is always distributed at 100% even if there aren't enough
   // donations
 
+  let matchPotWeiLeftOver = parseUnits(totalPot.toString());
+
   // If match exceeds pot, scale down match to pot size
-  matchResults.forEach((result) => {
+  matchResults.forEach((result, index) => {
+    const isLastResult = index === matchResults.length - 1;
+    const matchAmountInWei = parseUnits(result.matchAmountInToken.toString());
+
     const updatedMatchAmountInUSD =
       result.matchAmountInUSD * (totalPotInUSD / totalMatchInUSD);
 
@@ -475,7 +481,14 @@ export const matchQFContributions = async (
     result.matchPoolPercentage = result.matchAmountInUSD / totalPotInUSD;
     result.matchAmountInToken = result.matchPoolPercentage * totalPot;
 
+    if (isLastResult) {
+      result.matchAmount = matchPotWeiLeftOver.toString();
+    } else {
+      result.matchAmount = matchAmountInWei.toString();
+    }
+
     totalMatchInUSDAfterNormalising += updatedMatchAmountInUSD;
+    matchPotWeiLeftOver = matchPotWeiLeftOver.sub(matchAmountInWei);
   });
 
   if (matchingCapPercentage) {

@@ -6,6 +6,7 @@ export type QFDistribution = {
   totalContributionsInUSD: number;
   matchPoolPercentage: number;
   matchAmountInToken: number;
+  matchAmount: string;
   projectPayoutAddress: string;
   uniqueContributorsCount: number;
 };
