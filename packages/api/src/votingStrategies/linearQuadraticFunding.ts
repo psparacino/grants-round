@@ -472,7 +472,7 @@ export const matchQFContributions = async (
   // the pot is always distributed at 100% even if there aren't enough
   // donations
 
-  let matchPotWeiLeftOver = parseUnits(totalPot.toString());
+  let matchPotWeiLeftOver = parseUnits(totalPot.toFixed(18).toString());
 
   // If match exceeds pot, scale down match to pot size
   matchResults.forEach((result, index) => {
@@ -653,7 +653,7 @@ export const fetchActiveRounds = async (chainId: ChainId) => {
   const query = `
     query GetActiveRounds($unixTimestamp: String!) {
       rounds(
-        where: { roundEndTime_lte: $unixTimestamp }
+        where: { roundEndTime_gte: $unixTimestamp }
         orderBy: createdAt
         orderDirection: desc
       ) {
