@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import {formatEther, formatUnits, parseUnits} from "ethers/lib/utils";
+import { formatEther, formatUnits, parseUnits } from "ethers/lib/utils";
 import {
   ChainId,
   QFContributionSummary,
@@ -7,14 +7,14 @@ import {
   QFVotedEvent,
   QFDistribution,
   RoundMetadata,
-  QFDistributionResults,
+  QFDistributionResults
 } from "../types";
 import {
   fetchFromGraphQL,
   fetchCurrentTokenPrices,
   fetchPayoutAddressToProjectIdMapping,
   fetchAverageTokenPrices,
-  fetchProjectIdToPayoutAddressMapping,
+  fetchProjectIdToPayoutAddressMapping
 } from "../utils";
 
 /**
@@ -34,8 +34,8 @@ export const summarizeQFContributions = async (
     uniqueContributors: 0,
     totalContributionsInUSD: 0,
     averageUSDContribution: 0,
-    totalTippedInToken: '0',
-    averageTipInToken: '0',
+    totalTippedInToken: "0",
+    averageTipInToken: "0"
   };
 
   let totalTippedInToken = BigNumber.from("0");
@@ -46,7 +46,7 @@ export const summarizeQFContributions = async (
 
   const summaryContributions: any = {
     contributions: {},
-    contributors: [],
+    contributors: []
   };
 
   const uniqueContributors = new Set();
@@ -71,12 +71,15 @@ export const summarizeQFContributions = async (
     // add contributor to set
     uniqueContributors.add(contributor);
     // Update the sum for the token
-    summaryContributions.contributions[token] =
-      summaryContributions.contributions[token].add(item.amount);
+    summaryContributions.contributions[
+      token
+    ] = summaryContributions.contributions[token].add(item.amount);
   });
 
   summary.totalTippedInToken = formatEther(totalTippedInToken);
-  summary.averageTipInToken = formatEther(totalTippedInToken.div(contributions.length));
+  summary.averageTipInToken = formatEther(
+    totalTippedInToken.div(contributions.length)
+  );
 
   let totalContributionsInUSD = 0;
 
@@ -85,7 +88,7 @@ export const summarizeQFContributions = async (
     Object.keys(summaryContributions.contributions)
   );
 
-  Object.keys(summaryContributions.contributions).map(async (tokenAddress) => {
+  Object.keys(summaryContributions.contributions).map(async tokenAddress => {
     const tokenAmount: number = Number(
       formatUnits(summaryContributions.contributions[tokenAddress])
     );
@@ -111,10 +114,10 @@ export const decodePublicationId = (encodedId: string) => {
   let profileId = encodedId.slice(2, 34);
   let postId = encodedId.slice(34, 66);
 
-  profileId = '0x' + profileId.slice(0, profileId.lastIndexOf('1'));
-  postId = '0x' + postId.slice(0, postId.lastIndexOf('1'));
+  profileId = "0x" + profileId.slice(0, profileId.lastIndexOf("1"));
+  postId = "0x" + postId.slice(0, postId.lastIndexOf("1"));
 
-  return profileId + '-' + postId;
+  return profileId + "-" + postId;
 };
 
 /**
@@ -132,7 +135,7 @@ export const decodePublicationId = (encodedId: string) => {
 export const fetchQFContributionsForRound = async (
   chainId: ChainId,
   roundId: string,
-  lastCreatedAt: string = '0',
+  lastCreatedAt: string = "0",
   votes: QFContribution[] = []
 ): Promise<QFContribution[]> => {
   const query = `
@@ -192,7 +195,7 @@ export const fetchQFContributionsForRound = async (
         token: vote.token,
         contributor: vote.from,
         projectId: projectId,
-        projectPayoutAddress: vote.to,
+        projectPayoutAddress: vote.to
       });
     }
   });
@@ -204,7 +207,6 @@ export const fetchQFContributionsForRound = async (
     votes
   );
 };
-
 
 /**
  * fetchContributionsForProject is a function that fetches a list of contributions for
@@ -226,7 +228,7 @@ export const fetchQFContributionsForProjects = async (
   votingStrategyId: string,
   projectIds: string[],
   lastID: string = "",
-  votes: QFContribution[] = [],
+  votes: QFContribution[] = []
 ): Promise<QFContribution[]> => {
   const query = `
     query GetContributionsForProject($votingStrategyId: String, $lastID: String, $to: [String]) {
@@ -254,7 +256,7 @@ export const fetchQFContributionsForProjects = async (
 
   // convert projectIds to payout addresses
   const projectPayoutAddresses = await fetchProjectIdToPayoutAddressMapping(
-    metadata.projectsMetaPtr,
+    metadata.projectsMetaPtr
   );
   // convert payout addresses to array of strings
   const payoutAddresses = Array.from(projectPayoutAddresses.values());
@@ -268,7 +270,7 @@ export const fetchQFContributionsForProjects = async (
   const response = await fetchFromGraphQL(chainId, query, {
     votingStrategyId,
     lastID,
-    to: payoutAddresses,
+    to: payoutAddresses
   });
 
   if (response.errors) {
@@ -285,7 +287,7 @@ export const fetchQFContributionsForProjects = async (
       token: vote.token,
       contributor: vote.from,
       projectId: projectId!,
-      projectPayoutAddress: vote.to,
+      projectPayoutAddress: vote.to
     });
 
     lastID = vote.id;
@@ -308,7 +310,6 @@ export const fetchQFContributionsForProjects = async (
   );
 };
 
-
 /**
  *
  * @param {ChainId} chainId  - The ID of the chain on which the round is running
@@ -326,7 +327,7 @@ export const matchQFContributions = async (
     roundStartTime,
     roundEndTime,
     token,
-    matchingCapPercentage,
+    matchingCapPercentage
   } = metadata;
 
   // let isSaturated: boolean;
@@ -367,9 +368,9 @@ export const matchQFContributions = async (
             // all contributions made by contributor to the projectId
             ...contribution, // list of all contributions made by contributor to the projectId
             usdValue: usdAmount, // total USD amount for all contributions made by contributor to the projectId
-            totalAmountInToken: amount,
-          },
-        },
+            totalAmountInToken: amount
+          }
+        }
       };
       continue;
     }
@@ -380,14 +381,18 @@ export const matchQFContributions = async (
       contributionsByProject[projectId].contributions[contributor] = {
         ...contribution,
         usdValue: usdAmount,
-        totalAmountInToken: amount,
+        totalAmountInToken: amount
       };
     } else {
       // update total USD amount as this contributor has already made contributions to the project
-      contributionsByProject[projectId].contributions[contributor].usdValue += // all contributions made by contributor to the projectId
-        usdAmount; // total USD amount for all contributions made by contributor to the projectId
-      contributionsByProject[projectId].contributions[contributor].totalAmountInToken =
-        contributionsByProject[projectId].contributions[contributor].totalAmountInToken.add(amount);
+      contributionsByProject[projectId].contributions[
+        contributor
+      ].usdValue += usdAmount; // all contributions made by contributor to the projectId // total USD amount for all contributions made by contributor to the projectId
+      contributionsByProject[projectId].contributions[
+        contributor
+      ].totalAmountInToken = contributionsByProject[projectId].contributions[
+        contributor
+      ].totalAmountInToken.add(amount);
     }
   }
 
@@ -403,11 +408,12 @@ export const matchQFContributions = async (
 
     const uniqueContributors = new Set();
 
-    const contributions: (QFContribution & {totalAmountInToken: BigNumber})[] = Object.values(
-      contributionsByProject[projectId].contributions
-    );
-    const projectPayoutAddress = contributionsByProject[projectId].payoutAddress;
-    contributions.forEach((contribution) => {
+    const contributions: (QFContribution & {
+      totalAmountInToken: BigNumber;
+    })[] = Object.values(contributionsByProject[projectId].contributions);
+    const projectPayoutAddress =
+      contributionsByProject[projectId].payoutAddress;
+    contributions.forEach(contribution => {
       const { contributor, usdValue, totalAmountInToken } = contribution;
 
       uniqueContributors.add(contributor);
@@ -434,7 +440,7 @@ export const matchQFContributions = async (
       matchAmountInToken: 0,
       projectPayoutAddress: projectPayoutAddress,
       uniqueContributorsCount: uniqueContributors.size,
-      matchAmount: '0'
+      matchAmount: "0"
     });
     totalMatchInUSD += isNaN(matchInUSD) ? 0 : matchInUSD; // TODO: what should happen when matchInUSD is NaN?
     // TODO: Error out if NaN
@@ -471,7 +477,9 @@ export const matchQFContributions = async (
   // If match exceeds pot, scale down match to pot size
   matchResults.forEach((result, index) => {
     const isLastResult = index === matchResults.length - 1;
-    const matchAmountInWei = parseUnits(result.matchAmountInToken.toString());
+    const matchAmountInWei = parseUnits(
+      result.matchAmountInToken.toFixed(18).toString()
+    );
 
     const updatedMatchAmountInUSD =
       result.matchAmountInUSD * (totalPotInUSD / totalMatchInUSD);
@@ -529,17 +537,14 @@ export const matchQFContributions = async (
     let _totalMatchAmountInUSD = 0;
     let _totalMatchAmountInToken = 0;
     let _totalMatchAmountInPercentage = 0;
-    matchResults.forEach((result) => {
+    matchResults.forEach(result => {
       _totalMatchAmountInUSD += result.matchAmountInUSD;
       _totalMatchAmountInToken += result.matchAmountInToken;
       _totalMatchAmountInPercentage += result.matchPoolPercentage;
     });
     console.log("_totalMatchAmountInUSD", _totalMatchAmountInUSD);
     console.log("_totalMatchAmountInToken", _totalMatchAmountInToken);
-    console.log(
-      "_totalMatchAmountInPercentage",
-      _totalMatchAmountInPercentage
-    );
+    console.log("_totalMatchAmountInPercentage", _totalMatchAmountInPercentage);
 
     console.log("=====================");
     matchResults.forEach((match, index) => {
@@ -554,7 +559,7 @@ export const matchQFContributions = async (
   }
 
   return {
-    distribution: matchResults,
+    distribution: matchResults
     // isSaturated: isSaturated,
   };
 };
@@ -578,7 +583,7 @@ const applyMatchingCap = (
   let amountLeftInPoolAfterCapping = 0;
   let totalMatchForProjectWhichHaveNotCapped = 0;
 
-  distribution.forEach((projectMatch) => {
+  distribution.forEach(projectMatch => {
     if (projectMatch.matchAmountInUSD >= matchingCapInUSD) {
       // increase amountLeftInPoolAfterCapping by the amount that is over the cap
       const amountOverCap = projectMatch.matchAmountInUSD - matchingCapInUSD;
@@ -609,7 +614,7 @@ const applyMatchingCap = (
     // reset amountLeftInPoolAfterCapping to check if any project's match is more the capAmount after spreading the remainder
     amountLeftInPoolAfterCapping = 0;
 
-    distribution.forEach((projectMatch) => {
+    distribution.forEach(projectMatch => {
       if (projectMatch.matchAmountInUSD < matchingCapInUSD) {
         // distribute the remainder proportionally to the projects which have not been capped
         projectMatch.matchAmountInUSD +=
@@ -662,10 +667,10 @@ export const fetchActiveRounds = async (chainId: ChainId) => {
         }
       }
     }
-  `
+  `;
 
-  const variables = {unixTimestamp: unixTimestamp.toString()};
+  const variables = { unixTimestamp: unixTimestamp.toString() };
 
   const response = await fetchFromGraphQL(chainId, query, variables);
-  return response.data.rounds as {id: string}[];
-}
+  return response.data.rounds as { id: string }[];
+};
