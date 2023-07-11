@@ -1,26 +1,26 @@
-import {VotingStrategy} from "@prisma/client";
-import {getAddress} from "ethers/lib/utils";
-import {Response} from "express";
+import { VotingStrategy } from "@prisma/client";
+import { getAddress } from "ethers/lib/utils";
+import { Response } from "express";
 import fetch from "node-fetch";
-import {ChainId, DenominationResponse, MetaPtr, RoundMetadata,} from "./types";
-import {cache} from "./cacheConfig";
+import { ChainId, DenominationResponse, MetaPtr, RoundMetadata } from "./types";
+import { cache } from "./cacheConfig";
 
 const TESNET_TOKEN_TO_USD_RATE = 1000;
 
 type TokenPriceMapping = {
   [address: string]: {
-    usd: number
+    usd: number;
   };
-}
+};
 
 type AvgTokenPriceMapping = {
   [address: string]: number;
-}
+};
 
 type TokenStartEndPrice = {
   startPrice: number;
   endPrice: number;
-}
+};
 
 /**
  * Fetch subgraph network for provided web3 network
@@ -110,15 +110,13 @@ export const getChainVerbose = (id: string) => {
 export const fetchFromIPFS = async (cid: string) => {
   const REACT_APP_PINATA_GATEWAY = "gitcoin.mypinata.cloud";
 
-  return fetch(`https://${REACT_APP_PINATA_GATEWAY}/ipfs/${cid}`).then(
-    (resp) => {
-      if (resp.ok) {
-        return resp.json();
-      }
-
-      return Promise.reject(resp);
+  return fetch(`https://${REACT_APP_PINATA_GATEWAY}/ipfs/${cid}`).then(resp => {
+    if (resp.ok) {
+      return resp.json();
     }
-  );
+
+    return Promise.reject(resp);
+  });
 };
 
 /**
@@ -139,10 +137,10 @@ export const fetchFromGraphQL = async (
   return fetch(endpoint, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify({ query, variables }),
-  }).then((resp) => {
+    body: JSON.stringify({ query, variables })
+  }).then(resp => {
     if (resp.ok) {
       return resp.json();
     }
@@ -203,8 +201,8 @@ export const fetchRoundMetadata = async (
 
   // fetch round metadata
   const roundMetadata = await fetchFromIPFS(data?.roundMetaPtr.pointer);
-  const totalPot = roundMetadata.matchingFunds.matchingFundsAvailable;
-  const matchingCapPercentage = roundMetadata.matchingFunds.matchingCapAmount;
+  const totalPot = roundMetadata.matchingFunds?.matchingFundsAvailable || 0;
+  const matchingCapPercentage = roundMetadata.matchingFunds?.matchingCapAmount;
   const strategyName = getStrategyName(data?.votingStrategy.strategyName);
 
   const projectsMetaPtr: MetaPtr = data?.projectsMetaPtr;
@@ -212,14 +210,14 @@ export const fetchRoundMetadata = async (
   const metadata: RoundMetadata = {
     votingStrategy: {
       id: data?.votingStrategy.id,
-      strategyName: strategyName,
+      strategyName: strategyName
     },
     projectsMetaPtr: projectsMetaPtr,
     roundStartTime: data?.roundStartTime,
     roundEndTime: data?.roundEndTime,
     token: data?.token,
     totalPot: totalPot,
-    matchingCapPercentage: matchingCapPercentage,
+    matchingCapPercentage: matchingCapPercentage
   };
 
   // cache the round metadata
@@ -253,7 +251,7 @@ export const handleResponse = (
   return res.json({
     success,
     message,
-    data: body ?? {},
+    data: body ?? {}
   });
 };
 
@@ -271,8 +269,8 @@ export const getChainName = (chainId: ChainId) => {
     [ChainId.MAINNET]: "ethereum",
     [ChainId.OPTIMISM_MAINNET]: "optimistic-ethereum",
     [ChainId.FANTOM_MAINNET]: "fantom",
-    [ChainId.POLYGON_MAINNET]: 'polygon-pos',
-    [ChainId.MUMBAI]: 'polygon-pos'
+    [ChainId.POLYGON_MAINNET]: "polygon-pos",
+    [ChainId.MUMBAI]: "polygon-pos"
   };
 
   if (coingeckoSupportedChainNames[chainId]) {
@@ -289,13 +287,12 @@ export async function getStartAndEndTokenPrices(
   endTime: number
 ): Promise<TokenStartEndPrice> {
   try {
-
     // Avoid coingecko calling for testnet
     if (isTestnet(chainId)) {
       return {
         startPrice: TESNET_TOKEN_TO_USD_RATE,
         endPrice: TESNET_TOKEN_TO_USD_RATE
-      }
+      };
     }
 
     const { chainName, error } = getChainName(chainId);
@@ -307,8 +304,8 @@ export async function getStartAndEndTokenPrices(
     const url = `https://api.coingecko.com/api/v3/coins/${chainName}/contract/${contract}/market_chart/range?vs_currency=usd&from=${startTime}&to=${endTime}`;
     const res = await fetch(url, {
       headers: {
-        Accept: "application/json",
-      },
+        Accept: "application/json"
+      }
     });
     // TODO: Log to sentry
     const data = await res.json();
@@ -362,7 +359,7 @@ export async function denominateAs(
     return {
       isSuccess: true,
       amount: convertedAmount,
-      message: `Successfully converted ${amount} ${token} to ${convertedAmount} ${asToken}`,
+      message: `Successfully converted ${amount} ${token} to ${convertedAmount} ${asToken}`
     } as DenominationResponse;
   } catch (error) {
     console.error(
@@ -373,7 +370,7 @@ export async function denominateAs(
     return {
       isSuccess: false,
       amount: amount,
-      message: error,
+      message: error
     } as DenominationResponse;
   }
 }
@@ -410,10 +407,8 @@ export const fetchCurrentTokenPrices = async (
 ): Promise<TokenPriceMapping> => {
   let tokenPrices: TokenPriceMapping = {};
   try {
-
     // Avoid coingecko calling for testnet
     if (isTestnet(chainId)) {
-
       let testnetTokenPrices: any = {
         "0x0000000000000000000000000000000000000000": {
           usd: TESNET_TOKEN_TO_USD_RATE
@@ -436,8 +431,8 @@ export const fetchCurrentTokenPrices = async (
 
     const resTokenPriceEndpoint = await fetch(tokenPriceEndpoint, {
       headers: {
-        Accept: "application/json",
-      },
+        Accept: "application/json"
+      }
     });
 
     const tokenPricesResponse = await resTokenPriceEndpoint.json();
@@ -450,14 +445,14 @@ export const fetchCurrentTokenPrices = async (
       const nativePriceEndpoint = `https://api.coingecko.com/api/v3/simple/price?ids=${chainName}&vs_currencies=usd`;
       const resNativePriceEndpoint = await fetch(nativePriceEndpoint, {
         headers: {
-          Accept: "application/json",
-        },
+          Accept: "application/json"
+        }
       });
 
       const nativeTokenPrice = (await resNativePriceEndpoint.json())[chainName];
       tokenPrices = {
         ...tokenPrices,
-        "0x0000000000000000000000000000000000000000": nativeTokenPrice,
+        "0x0000000000000000000000000000000000000000": nativeTokenPrice
       };
     }
   } catch (error) {
@@ -475,7 +470,7 @@ export const fetchCurrentTokenPrices = async (
  */
 export function groupBy(list: any[], keyGetter: any) {
   const map = new Map();
-  list.forEach((item) => {
+  list.forEach(item => {
     const key = keyGetter(item);
     const collection = map.get(key);
     if (!collection) {
@@ -528,8 +523,8 @@ export const fetchAverageTokenPrices = async (
           const resTokenPriceEndpoint = await fetch(tokenPriceEndpoint, {
             method: "GET",
             headers: {
-              "Content-Type": "application/json",
-            },
+              "Content-Type": "application/json"
+            }
           });
           const tokenPriceData = await resTokenPriceEndpoint.json();
 
@@ -553,8 +548,8 @@ export const fetchAverageTokenPrices = async (
         const resNativePriceEndpoint = await fetch(nativePriceEndpoint, {
           headers: {
             method: "GET",
-            Accept: "application/json",
-          },
+            Accept: "application/json"
+          }
         });
 
         const nativePriceData = await resNativePriceEndpoint.json();
@@ -591,7 +586,7 @@ export const fetchPayoutAddressToProjectIdMapping = async (
 
   let projects: ProjectMetaPtr[] = await fetchFromIPFS(pointer);
 
-  projects = projects.filter((project) => project.status === "APPROVED");
+  projects = projects.filter(project => project.status === "APPROVED");
 
   for (const project of projects) {
     // project.id format ->  applicationId-roundId
@@ -625,7 +620,7 @@ export const fetchProjectIdToPayoutAddressMapping = async (
 
   let projects: ProjectMetaPtr[] = await fetchFromIPFS(pointer);
 
-  projects = projects.filter((project) => project.status === "APPROVED");
+  projects = projects.filter(project => project.status === "APPROVED");
 
   for (const project of projects) {
     // project.id format ->  applicationId-roundId
@@ -663,18 +658,23 @@ export const isTestnet = (chainId: ChainId) => {
  *
  * @returns validAddress
  */
-export const getValidCoinGeckoTokenAddress = (chainId: ChainId, address: string) => {
+export const getValidCoinGeckoTokenAddress = (
+  chainId: ChainId,
+  address: string
+) => {
   let validAddress = address;
   if (chainId == ChainId.FANTOM_MAINNET) {
-    if (address == "0xc931f61b1534eb21d8c11b24f3f5ab2471d4ab50") { // BUSD
-      validAddress = "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e" // DAI
+    if (address == "0xc931f61b1534eb21d8c11b24f3f5ab2471d4ab50") {
+      // BUSD
+      validAddress = "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e"; // DAI
     }
   }
 
   if (chainId == ChainId.MUMBAI) {
-    if (address == "0x9c3c9283d3e44854697cd22d3faa240cfb032889") { // POLYGON WMATIC
-      validAddress = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270" // MATIC
+    if (address == "0x9c3c9283d3e44854697cd22d3faa240cfb032889") {
+      // POLYGON WMATIC
+      validAddress = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"; // MATIC
     }
   }
   return validAddress;
-}
+};
