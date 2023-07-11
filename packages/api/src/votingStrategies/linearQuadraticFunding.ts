@@ -644,7 +644,7 @@ const applyMatchingCap = (
 };
 
 export const fetchActiveRounds = async (chainId: ChainId) => {
-  const unixTimestamp = Math.floor(Date.now() / 1000 + 60 * 60 * 24 * 7);
+  const unixTimestamp = Math.floor(Date.now() / 1000 + 60 * 60);
   const query = `
     query GetActiveRounds($unixTimestamp: String!) {
       rounds(
