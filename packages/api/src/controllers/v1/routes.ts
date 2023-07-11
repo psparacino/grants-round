@@ -8,7 +8,8 @@ import { updateRoundMatchHandler } from "../../handlers/updateRoundMatchHandler"
 import { getProjectMatchDataHandler } from "../../handlers/getProjectMatchDataHandler";
 import { getRoundMatchDataHandler } from "../../handlers/getRoundMatchDataHandler";
 import { getProjectSummariesDataHandler } from "../../handlers/getProjectSummariesDataHandler";
-import {getProjectMatchDataByProjectIdsHandler} from "../../handlers/getProjectMatchDataByProjectIdsHandler";
+import { getProjectMatchDataByProjectIdsHandler } from "../../handlers/getProjectMatchDataByProjectIdsHandler";
+import { getMatchAmountPreviewHandler } from "../../handlers/getMatchAmountPreviewHandler";
 
 const router = Router();
 
@@ -45,8 +46,15 @@ router.get(
   "/data/match/project/:chainId/:roundId/:projectId",
   getProjectMatchDataHandler
 );
+router.get(
+  "/data/match/preview/:chainId/:roundId/:projectId",
+  getMatchAmountPreviewHandler
+);
 
-router.get("/data/match/round/projectIds/:chainId/:roundId", getProjectMatchDataByProjectIdsHandler);
+router.get(
+  "/data/match/round/projectIds/:chainId/:roundId",
+  getProjectMatchDataByProjectIdsHandler
+);
 router.get("/data/match/round/:chainId/:roundId", getRoundMatchDataHandler);
 
 export default router;
