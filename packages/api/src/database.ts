@@ -121,7 +121,8 @@ export class DatabaseInstance {
         uniqueContributorsCount: Number(
           projectMatch.uniqueContributorsCount
         ),
-        totalContributionsInToken: projectMatch.totalContributionsInToken
+        totalContributionsInToken: projectMatch.totalContributionsInToken,
+        matchAmount: projectMatch.matchAmount,
       }
 
       const roundData = {

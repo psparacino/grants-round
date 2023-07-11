@@ -45,6 +45,7 @@ import {
 } from "./features/api/types";
 import { IAM_SERVER } from "./features/round/ViewApplicationPage";
 import history from "./history";
+import { parseUnits } from "ethers/lib/utils";
 
 export const makeProgramData = (overrides: Partial<Program> = {}): Program => ({
   id: faker.finance.ethereumAddress(),
@@ -100,14 +101,17 @@ export const makeMatchingStatsData = (): MatchingStatsData => {
 };
 
 export const makeQFDistribution = (): QFDistribution => {
+  const matchAmountInToken = faker.datatype.number();
+  const matchAmount = parseUnits(matchAmountInToken.toString(), 18).toString();
   return {
     projectId: faker.finance.ethereumAddress().toString(),
     matchAmountInUSD: faker.datatype.number(),
     totalContributionsInUSD: faker.datatype.number(),
     matchPoolPercentage: faker.datatype.number(),
-    matchAmountInToken: faker.datatype.number(),
     projectPayoutAddress: faker.finance.ethereumAddress(),
     uniqueContributorsCount: faker.datatype.number(),
+    matchAmount,
+    matchAmountInToken,
   };
 };
 

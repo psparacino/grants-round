@@ -122,4 +122,5 @@ export type QFDistribution = {
   matchAmountInToken: number;
   projectPayoutAddress: string;
   uniqueContributorsCount: number;
+  matchAmount: string;
 };
