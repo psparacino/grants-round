@@ -74,14 +74,18 @@ export const getMatchAmountPreviewHandler = async (
     const currentMatchAmountInToken = currentMatch?.matchAmountInToken || 0;
     const newMatchAmountInToken = newMatch?.matchAmountInToken || 0;
 
-    const differenceMatchAmountInToken =
-      newMatchAmountInToken - currentMatchAmountInToken;
+    const differenceMatchAmountInToken = Math.max(
+      newMatchAmountInToken - currentMatchAmountInToken,
+      0
+    );
 
     const currentMatchPoolPercentage = currentMatch?.matchPoolPercentage || 0;
     const newMatchPoolPercentage = newMatch?.matchPoolPercentage || 0;
 
-    const differenceMatchPoolPercentage =
-      newMatchPoolPercentage - currentMatchPoolPercentage;
+    const differenceMatchPoolPercentage = Math.max(
+      newMatchPoolPercentage - currentMatchPoolPercentage,
+      0
+    );
 
     return handleResponse(res, 200, `${req.originalUrl}`, {
       currentMatchAmountInToken,
