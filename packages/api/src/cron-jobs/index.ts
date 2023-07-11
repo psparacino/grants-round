@@ -22,27 +22,52 @@ export function setupCronJobs() {
             // For each round on each chain, update the results
             return Promise.all(
               rounds.map(async round => {
-                const updateResults = await updateRoundMatch(chainId, round.id);
-                console.log(
-                  "Updated matching results for round",
-                  round.id,
-                  "on",
-                  chainId,
-                  "to",
-                  updateResults
-                );
-                const roundSummaryUpdateResults = await updateRoundSummary(
-                  chainId,
-                  round.id
-                );
-                console.log(
-                  "Updated summary results for round",
-                  round.id,
-                  "on",
-                  chainId,
-                  "to",
-                  roundSummaryUpdateResults
-                );
+                try {
+                  const updateResults = await updateRoundMatch(
+                    chainId,
+                    round.id
+                  );
+                  console.log(
+                    "Updated matching results for round",
+                    round.id,
+                    "on",
+                    chainId,
+                    "to",
+                    updateResults
+                  );
+                } catch (error) {
+                  console.log(
+                    "Error updating match results for round",
+                    round.id,
+                    "on",
+                    chainId,
+                    "during cron job",
+                    error
+                  );
+                }
+                try {
+                  const roundSummaryUpdateResults = await updateRoundSummary(
+                    chainId,
+                    round.id
+                  );
+                  console.log(
+                    "Updated summary results for round",
+                    round.id,
+                    "on",
+                    chainId,
+                    "to",
+                    roundSummaryUpdateResults
+                  );
+                } catch (error) {
+                  console.log(
+                    "Error updating summary results for round",
+                    round.id,
+                    "on",
+                    chainId,
+                    "during cron job",
+                    error
+                  );
+                }
               })
             );
           });
