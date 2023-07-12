@@ -58,7 +58,7 @@ const fetchMissingContributions = async (): Promise<QFContribution[]> => {
   // fetch projectId -> payoutAddress mapping
   const projectsMetaPtr: MetaPtr = {
     pointer: "bafkreica324tot55eqxnvock5gdo4etklzf4hz5oa3tmb4zvaerigbclfu",
-    protocol: 1,
+    protocol: 1
   };
   const projectPayoutToIdMapping = await fetchPayoutAddressToProjectIdMapping(
     projectsMetaPtr
@@ -88,6 +88,7 @@ const fetchMissingContributions = async (): Promise<QFContribution[]> => {
           amount: BigNumber.from(decodedVote[1].toString()),
           projectId: projectId!, // TODO: This should be the project id when it is ready
           projectPayoutAddress: payoutAddress,
+          createdAt: new Date().getTime() / 1000
         };
 
         contributions.push(contribution);

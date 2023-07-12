@@ -12,7 +12,7 @@ export enum ChainId {
   FANTOM_TESTNET = "4002",
   LOCAL_ROUND_LAB = "3",
   POLYGON_MAINNET = "137",
-  MUMBAI = "80001",
+  MUMBAI = "80001"
 }
 
 export type Result = {
@@ -53,7 +53,6 @@ export type HandleResponseObject = {
   data: object;
 };
 
-
 /****************/
 /* = Passport = */
 /****************/
@@ -70,7 +69,7 @@ export type PassportResponse = {
   status?: string;
   last_score_timestamp?: string;
   evidence?: PassportEvidence;
-  error?: string|null;
+  error?: string | null;
   detail?: string;
 };
 
@@ -93,6 +92,7 @@ export type QFContribution = {
   projectId: string;
   projectPayoutAddress: string;
   usdValue?: number;
+  createdAt: number;
 };
 
 export type QFVotedEvent = {
@@ -102,6 +102,7 @@ export type QFVotedEvent = {
   from: string;
   id: string;
   projectId: string;
+  createdAt: string;
 };
 
 export type QFContributionSummary = {
@@ -123,4 +124,11 @@ export type QFDistribution = {
   projectPayoutAddress: string;
   uniqueContributorsCount: number;
   matchAmount: string;
+};
+
+export type MostRecentTip = {
+  projectId: string;
+  mostRecentIncludedTipTimestamp: number;
+  roundId: string;
+  userId: string;
 };

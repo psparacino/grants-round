@@ -56,7 +56,8 @@ export const getMatchAmountPreviewHandler = async (
       token: token,
       amount: BigNumber.from(tipAmount),
       projectId: publicationId,
-      projectPayoutAddress: currentMatch?.projectPayoutAddress || ""
+      projectPayoutAddress: currentMatch?.projectPayoutAddress || "",
+      createdAt: new Date().getTime() / 1000
     };
 
     contributions.push(newContribution);

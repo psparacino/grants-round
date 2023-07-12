@@ -95,6 +95,20 @@ model ProjectSummary {
   @@map("projectSummary")
 }
 
+model mostRecentIncludedTips {
+  id                             Int      @id @default(autoincrement())
+  createdAt                      DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt                      DateTime @updatedAt @db.Timestamptz(3)
+  roundId                        String
+  projectId                      String
+  userId                         String
+  mostRecentIncludedTipTimestamp Int
+  chainId                        ChainId
+
+  @@unique([projectId, userId, roundId, chainId], name: "includedTipsIdentifier")
+  @@map("mostRecentIncludedTips")
+}
+
 // ========= //
 // = ENUMS = //
 // ========= //
