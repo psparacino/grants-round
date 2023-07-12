@@ -10,6 +10,7 @@ import { getRoundMatchDataHandler } from "../../handlers/getRoundMatchDataHandle
 import { getProjectSummariesDataHandler } from "../../handlers/getProjectSummariesDataHandler";
 import { getProjectMatchDataByProjectIdsHandler } from "../../handlers/getProjectMatchDataByProjectIdsHandler";
 import { getMatchAmountPreviewHandler } from "../../handlers/getMatchAmountPreviewHandler";
+import { getTipIncludedHandler } from "../../handlers/getVoteIncludedHandler";
 
 const router = Router();
 
@@ -50,6 +51,7 @@ router.get(
   "/data/match/preview/:chainId/:roundId/:projectId",
   getMatchAmountPreviewHandler
 );
+router.post("/data/match/tip-included/:chainId", getTipIncludedHandler);
 
 router.get(
   "/data/match/round/projectIds/:chainId/:roundId",

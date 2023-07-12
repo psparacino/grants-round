@@ -1,10 +1,11 @@
 import { PrismaClient, VotingStrategy, Match, ChainId } from "@prisma/client";
 import { getChainVerbose } from "./utils";
 import {
+  MostRecentTip,
   QFContributionSummary,
   QFDistribution,
   Result,
-  RoundMetadata,
+  RoundMetadata
 } from "./types";
 
 export class DatabaseInstance {
@@ -25,8 +26,8 @@ export class DatabaseInstance {
         data: {
           chainId: chainIdVerbose,
           roundId,
-          votingStrategyName: votingStrategyName,
-        },
+          votingStrategyName: votingStrategyName
+        }
       });
       return { result: true };
     } catch (error) {
@@ -43,10 +44,10 @@ export class DatabaseInstance {
     try {
       await this.client.round.upsert({
         where: {
-          roundId: roundId,
+          roundId: roundId
         },
         update: update,
-        create: create,
+        create: create
       });
       return { result: true };
     } catch (error) {
@@ -66,8 +67,8 @@ export class DatabaseInstance {
         data: {
           projectId: projectId,
           roundId: roundId,
-          chainId: chainIdVerbose,
-        },
+          chainId: chainIdVerbose
+        }
       });
       return { result: true };
     } catch (error) {
@@ -87,11 +88,11 @@ export class DatabaseInstance {
         where: {
           projectIdentifier: {
             projectId: projectId,
-            roundId: roundId,
+            roundId: roundId
           }
         },
         update: update,
-        create: create,
+        create: create
       });
       return { result: true };
     } catch (error) {
@@ -112,46 +113,42 @@ export class DatabaseInstance {
       const matchData = {
         matchAmountInUSD: projectMatch.matchAmountInUSD,
         projectId: projectMatch.projectId,
-        totalContributionsInUSD: Number(
-          projectMatch.totalContributionsInUSD
-        ),
+        totalContributionsInUSD: Number(projectMatch.totalContributionsInUSD),
         matchPoolPercentage: Number(projectMatch.matchPoolPercentage),
         matchAmountInToken: Number(projectMatch.matchAmountInToken),
         projectPayoutAddress: projectMatch.projectPayoutAddress,
-        uniqueContributorsCount: Number(
-          projectMatch.uniqueContributorsCount
-        ),
+        uniqueContributorsCount: Number(projectMatch.uniqueContributorsCount),
         totalContributionsInToken: projectMatch.totalContributionsInToken,
-        matchAmount: projectMatch.matchAmount,
-      }
+        matchAmount: projectMatch.matchAmount
+      };
 
       const roundData = {
         roundId: roundId,
         chainId: chainIdVerbose as ChainId,
-        votingStrategyName: metadata.votingStrategy.strategyName as VotingStrategy,
-        matches: { create: matchData },
-      }
+        votingStrategyName: metadata.votingStrategy
+          .strategyName as VotingStrategy,
+        matches: { create: matchData }
+      };
 
       // upsert with match data
       await this.client.round.upsert({
-          where: { roundId: roundId },
-          create: roundData,
-          update: {
-            matches: {
-              upsert: {
-                where: {
-                  matchIdentifier: {
-                    projectId: projectMatch.projectId,
-                    roundId: roundId,
-                  }
-                },
-                create: matchData,
-                update: matchData,
-              }
+        where: { roundId: roundId },
+        create: roundData,
+        update: {
+          matches: {
+            upsert: {
+              where: {
+                matchIdentifier: {
+                  projectId: projectMatch.projectId,
+                  roundId: roundId
+                }
+              },
+              create: matchData,
+              update: matchData
             }
           }
         }
-      );
+      });
       return { result: true };
     } catch (error) {
       console.error("error upserting project match", error);
@@ -174,15 +171,16 @@ export class DatabaseInstance {
         totalContributionsInUSD: Number(summary.totalContributionsInUSD),
         averageUSDContribution: Number(summary.averageUSDContribution),
         totalTippedInToken: summary.totalTippedInToken,
-        averageTipInToken: summary.averageTipInToken,
-      }
+        averageTipInToken: summary.averageTipInToken
+      };
 
       const roundData = {
         roundId: roundId,
         chainId: chainIdVerbose as ChainId,
-        votingStrategyName: metadata.votingStrategy.strategyName as VotingStrategy,
-        roundSummary: { create: roundSummaryData },
-      }
+        votingStrategyName: metadata.votingStrategy
+          .strategyName as VotingStrategy,
+        roundSummary: { create: roundSummaryData }
+      };
 
       // upsert with round summary data
       await this.client.round.upsert({
@@ -192,7 +190,7 @@ export class DatabaseInstance {
           roundSummary: {
             upsert: {
               create: roundSummaryData,
-              update: roundSummaryData,
+              update: roundSummaryData
             }
           }
         }
@@ -202,6 +200,38 @@ export class DatabaseInstance {
     } catch (error) {
       console.error("error upserting round summary", error);
       return { error: error, result: false };
+    }
+  }
+
+  async upsertMostRecentTipsRecord(chainId: string, data: MostRecentTip[]) {
+    // Delete existing most recent tips
+    const chainIdVerbose = getChainVerbose(chainId);
+
+    try {
+      for (const tip of data) {
+        const data = {
+          projectId: tip.projectId,
+          roundId: tip.roundId,
+          userId: tip.userId,
+          mostRecentIncludedTipTimestamp: tip.mostRecentIncludedTipTimestamp,
+          chainId: chainIdVerbose as ChainId
+        };
+
+        await this.client.mostRecentIncludedTips.upsert({
+          where: {
+            includedTipsIdentifier: {
+              chainId: chainIdVerbose as ChainId,
+              projectId: tip.projectId,
+              roundId: tip.roundId,
+              userId: tip.userId
+            }
+          },
+          create: data,
+          update: data
+        });
+      }
+    } catch (error) {
+      console.error("error upserting most recent tips", error);
     }
   }
 
@@ -218,32 +248,33 @@ export class DatabaseInstance {
       const roundData = {
         roundId: roundId,
         chainId: chainIdVerbose as ChainId,
-        votingStrategyName: metadata.votingStrategy.strategyName as VotingStrategy,
-      }
+        votingStrategyName: metadata.votingStrategy
+          .strategyName as VotingStrategy
+      };
 
       const projectSummaryData = {
         contributionCount: summary.contributionCount,
         uniqueContributors: summary.uniqueContributors,
         totalContributionsInUSD: Number(summary.totalContributionsInUSD),
-        averageUSDContribution: Number(summary.averageUSDContribution),
-      }
+        averageUSDContribution: Number(summary.averageUSDContribution)
+      };
 
       const projectData = {
         roundId: roundId,
         projectId: projectId,
         chainId: chainIdVerbose as ChainId,
-        projectSummaries: { create: projectSummaryData },
-      }
+        projectSummaries: { create: projectSummaryData }
+      };
 
       // check if round exists
       const roundExists = await this.client.round.findUnique({
-        where: { roundId: roundId },
+        where: { roundId: roundId }
       });
 
       // if round doesn't exist, create it
       if (!roundExists) {
         await this.client.round.create({
-          data: roundData,
+          data: roundData
         });
       }
 
@@ -252,43 +283,42 @@ export class DatabaseInstance {
         where: {
           projectIdentifier: {
             projectId: projectId,
-            roundId: roundId,
+            roundId: roundId
           }
-        },
+        }
       });
 
       // if project doesn't exist, create it
       if (!projectExists) {
         await this.client.project.create({
-          data: projectData,
+          data: projectData
         });
       }
 
       // upsert the project summary data
       await this.client.project.upsert({
-          where: {
-            projectIdentifier: {
-              projectId: projectId,
-              roundId: roundId,
-            }
-          },
-          create: projectData,
-          update: {
-            projectSummaries: {
-              upsert: {
-                where: {
-                  projectSummaryIdentifier: {
-                    projectId: projectId,
-                    roundId: roundId,
-                  }
-                },
-                create: projectSummaryData,
-                update: projectSummaryData,
-              }
+        where: {
+          projectIdentifier: {
+            projectId: projectId,
+            roundId: roundId
+          }
+        },
+        create: projectData,
+        update: {
+          projectSummaries: {
+            upsert: {
+              where: {
+                projectSummaryIdentifier: {
+                  projectId: projectId,
+                  roundId: roundId
+                }
+              },
+              create: projectSummaryData,
+              update: projectSummaryData
             }
           }
         }
-      );
+      });
 
       return { result: true };
     } catch (error) {
@@ -300,7 +330,7 @@ export class DatabaseInstance {
   async getRoundMatchRecord(roundId: string): Promise<Result> {
     try {
       const result: Match[] = await this.client.match.findMany({
-        where: { roundId: roundId },
+        where: { roundId: roundId }
       });
       return { result };
     } catch (error) {
@@ -309,27 +339,30 @@ export class DatabaseInstance {
     }
   }
 
-  async getProjectMatchDataByProjectIds(roundId: string, publicationIds: string[]): Promise<Result> {
+  async getProjectMatchDataByProjectIds(
+    roundId: string,
+    publicationIds: string[]
+  ): Promise<Result> {
     try {
       const result = await this.client.match.findMany({
         where: {
           roundId: roundId,
           projectId: {
             in: publicationIds
-          },
-        },
+          }
+        }
       });
-      return {result};
+      return { result };
     } catch (error) {
       console.error("error getting post match", error);
-      return {error: error, result: null};
+      return { error: error, result: null };
     }
   }
 
   async getRoundSummaryRecord(roundId: string): Promise<Result> {
     try {
       const result = await this.client.roundSummary.findUnique({
-        where: { roundId: roundId },
+        where: { roundId: roundId }
       });
       return { result };
     } catch (error) {
@@ -347,9 +380,9 @@ export class DatabaseInstance {
         where: {
           projectSummaryIdentifier: {
             roundId: roundId,
-            projectId: projectId,
+            projectId: projectId
           }
-        },
+        }
       });
       return { result };
     } catch (error) {
@@ -367,9 +400,9 @@ export class DatabaseInstance {
         where: {
           matchIdentifier: {
             roundId: roundId,
-            projectId: projectId,
+            projectId: projectId
           }
-        },
+        }
       });
       return { result };
     } catch (error) {
@@ -386,9 +419,9 @@ export class DatabaseInstance {
       const result = await this.client.projectSummary.findMany({
         where: {
           projectId: {
-            in: projectIds,
-          },
-        },
+            in: projectIds
+          }
+        }
       });
       return { result };
     } catch (error) {
@@ -397,10 +430,35 @@ export class DatabaseInstance {
     }
   }
 
+  async getMostRecentTipRecord(
+    chainId: string,
+    roundId: string,
+    projectId: string,
+    userId: string
+  ) {
+    try {
+      const chainIdVerbose = getChainVerbose(chainId);
+      const result = await this.client.mostRecentIncludedTips.findUnique({
+        where: {
+          includedTipsIdentifier: {
+            chainId: chainIdVerbose as ChainId,
+            roundId: roundId,
+            projectId: projectId,
+            userId: userId
+          }
+        }
+      });
+      return { result };
+    } catch (error) {
+      console.error("error getting most recent tip", error);
+      return { error: error, result: null };
+    }
+  }
+
   async getRoundRecord(roundId: string): Promise<Result> {
     try {
       const result = await this.client.round.findUnique({
-        where: { roundId: roundId },
+        where: { roundId: roundId }
       });
 
       return { result };
@@ -416,9 +474,9 @@ export class DatabaseInstance {
         where: {
           projectIdentifier: {
             projectId: projectId,
-            roundId: roundId,
+            roundId: roundId
           }
-        },
+        }
       });
       return { result };
     } catch (error) {

@@ -1,9 +1,18 @@
-import {fetchRoundMetadata, getChainVerbose, } from "../utils";
-import {ChainId, QFDistribution, QFDistributionResults} from "../types";
-import {VotingStrategy} from "@prisma/client";
-import {fetchQFContributionsForRound, matchQFContributions} from "../votingStrategies/linearQuadraticFunding";
-import {hotfixForRounds} from "../hotfixes";
-import {db} from "../database";
+import { fetchRoundMetadata, getChainVerbose } from "../utils";
+import {
+  ChainId,
+  MostRecentTip,
+  QFContribution,
+  QFDistribution,
+  QFDistributionResults
+} from "../types";
+import { VotingStrategy } from "@prisma/client";
+import {
+  fetchQFContributionsForRound,
+  matchQFContributions
+} from "../votingStrategies/linearQuadraticFunding";
+import { hotfixForRounds } from "../hotfixes";
+import { db } from "../database";
 
 export const updateRoundMatch = async (chainId: ChainId, _roundId: string) => {
   let results: QFDistributionResults | undefined;
@@ -16,12 +25,12 @@ export const updateRoundMatch = async (chainId: ChainId, _roundId: string) => {
 
   const chainIdVerbose = getChainVerbose(chainId);
 
+  let contributions: QFContribution[] = [];
   switch (votingStrategyName) {
     case "LINEAR_QUADRATIC_FUNDING":
-
-      let contributions = await fetchQFContributionsForRound(
+      contributions = await fetchQFContributionsForRound(
         chainId as ChainId,
-        roundId,
+        roundId
       );
 
       contributions = await hotfixForRounds(roundId, contributions);
@@ -40,13 +49,13 @@ export const updateRoundMatch = async (chainId: ChainId, _roundId: string) => {
       const upsetRecordStatus = await db.upsertRoundRecord(
         roundId,
         {
-          isSaturated: results.isSaturated,
+          isSaturated: results.isSaturated
         },
         {
           chainId: chainIdVerbose,
           roundId: roundId,
           votingStrategyName: votingStrategyName,
-          isSaturated: results.isSaturated,
+          isSaturated: results.isSaturated
         }
       );
 
@@ -68,6 +77,32 @@ export const updateRoundMatch = async (chainId: ChainId, _roundId: string) => {
         }
       }
 
+      const mostRecentTips: Record<string, MostRecentTip> = {};
+
+      // Collect most recent tips
+      for (const contribution of contributions) {
+        const { projectId, contributor } = contribution;
+        if (!mostRecentTips[projectId]) {
+          mostRecentTips[projectId] = {
+            roundId,
+            projectId,
+            userId: contributor,
+            mostRecentIncludedTipTimestamp: contribution.createdAt
+          };
+        } else if (
+          mostRecentTips[projectId].mostRecentIncludedTipTimestamp <
+          contribution.createdAt
+        ) {
+          mostRecentTips[projectId].mostRecentIncludedTipTimestamp =
+            contribution.createdAt;
+        }
+      }
+
+      await db.upsertMostRecentTipsRecord(
+        chainId,
+        Object.values(mostRecentTips)
+      );
+
       const match = await db.getRoundMatchRecord(roundId);
 
       if (match.error) {
@@ -80,13 +115,13 @@ export const updateRoundMatch = async (chainId: ChainId, _roundId: string) => {
     } catch (error) {
       console.error(error);
 
-      results.distribution = results.distribution.map((dist) => {
+      results.distribution = results.distribution.map(dist => {
         return {
           id: null,
           createdAt: null,
           updatedAt: new Date(),
           ...dist,
-          roundId: roundId,
+          roundId: roundId
         };
       });
       const dbFailResults = results.distribution;
@@ -98,4 +133,4 @@ export const updateRoundMatch = async (chainId: ChainId, _roundId: string) => {
   } else {
     throw "error: no results";
   }
-}
+};
