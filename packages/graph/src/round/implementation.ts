@@ -162,6 +162,9 @@ export function handleProjectsMetaPtrUpdated(
   const protocol = _metaPtr[0].toI32();
   const pointer = _metaPtr[1].toString();
 
+  log.info("ptr protocol: {}", [protocol.toString()]);
+  log.info("ptr pointer: {}", [pointer.toString()]);
+
   // load Round entity
   const round = Round.load(_round);
   if (!round) return;
@@ -175,6 +178,10 @@ export function handleProjectsMetaPtrUpdated(
 
   // fetch projectsMetaPtr content
   const metaPtrData = fetchMetaPtrData(protocol, pointer);
+  
+  if (metaPtrData) {
+    log.info("metaPtrData: {}", [metaPtrData.toString()]);
+  }
 
   if (!metaPtrData) {
     log.warning("--> handleProjectsMetaPtrUpdated: metaPtrData is null {}", [
